@@ -1,0 +1,52 @@
+version: '3.8'
+
+
+x-postgres-common:
+  &postgres-common
+  # image: postgres:15
+  user: postgres
+  # restart: always
+  healthcheck:
+    test: 'pg_isready -U hello_django --dbname=hello_django_dev'
+    interval: 10s
+    timeout: 5s
+    retries: 5
+
+services:
+  web:
+    build: ./app
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./app/:/usr/src/app/
+    ports:
+      - 8000:8000
+      - 3000:3000
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+  
+  db:
+    <<: *postgres-common
+    build: ./db
+    restart: always
+    volumes:
+      - ./sh_commands/:/sh_commands/
+      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data_sec:/var/lib/postgresql/data2/
+      - ./initdb-scripts/:/docker-entrypoint-initdb.d/
+    ports:
+      - 5432:5432
+    env_file:
+      - ./.env.dev
+    command: |
+      postgres
+      -c wal_level=replica
+      -c hot_standby=on
+      -c max_wal_senders=10
+      -c max_replication_slots=10
+      -c hot_standby_feedback=on
+
+volumes:
+  postgres_data:
+  postgres_data_sec:

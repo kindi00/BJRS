@@ -1,0 +1,75 @@
+version: '3.8'
+
+
+x-postgres-common:
+  &postgres-common
+  user: postgres
+  restart: always
+  healthcheck:
+    test: 'pg_isready -U hello_django --dbname=hello_django_dev'
+    interval: 10s
+    timeout: 5s
+    retries: 5
+
+services:
+  web:
+    build: ./app
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./app/:/usr/src/app/
+    ports:
+      - 8000:8000
+      - 3000:3000
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+    restart: always
+  
+  # db:
+  #   <<: *postgres-common
+  #   # image: postgres:15
+  #   build: ./db
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data/
+  #     - postgres_data_sec:/var/lib/postgresql/data2/
+  #     # - ./pg_hba.conf:/etc/pg_hba.conf
+  #     # - ./archivedir:/mnt/server/archivedir
+  #     - ./initdb-scripts/:/docker-entrypoint-initdb.d/
+  #   ports:
+  #     - 5432:5432
+  #   environment:
+  #     POSTGRES_USER: hello_django
+  #     POSTGRES_PASSWORD: hello_django
+  #     POSTGRES_DB: hello_django_dev
+  #     POSTGRES_HOST_AUTH_METHOD: "scram-sha-256\nhost replication replicator 192.168.0.104/24 md5"
+  #     POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+  #     # - POSTGRES_INITDB_ARGS='hba_file=etc/pg_hba.conf'
+  #   command: |
+  #     postgres 
+  #     -c wal_level=replica
+  #     -c hot_standby=on
+  #     -c max_wal_senders=10
+  #     -c max_replication_slots=10
+  #     -c hot_standby_feedback=on
+  db:
+    <<: *postgres-common
+    # image: postgres:15
+    build: ./db
+    restart: always
+    volumes:
+      - ./sh_commands/:/sh_commands/
+      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data_sec:/var/lib/postgresql/data2/
+    ports:
+      - 5432:5432
+    env_file:
+      - ./.env.dev
+    # environment:
+    #   - PGUSER=replicator
+    #   - PGPASSWORD=replicator
+    command: "bash ./sh_commands/init_backup.sh"
+
+volumes:
+  postgres_data:
+  postgres_data_sec:
