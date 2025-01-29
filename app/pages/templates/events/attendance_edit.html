@@ -1,0 +1,33 @@
+{% extends "person/main.html" %}
+
+{% block head %}
+{{ block.super }}
+{% endblock head %}
+
+{% block content %}
+{{ block.super }}
+    <form method="POST" action="">
+        {% csrf_token %}
+    <table id="browse_table" class="table table-striped table-hover table-bordered border-secondary">
+        <thead class="table-info">
+            <tr>
+                <th onclick="sortTable(0, 'browse_table', 'th0')">Uczestnik<a id="th0"></a></th>
+                <th onclick="sortTable(1, 'browse_table', 'th1')">Obecność<a id="th1"></a></th>
+                <th>Opcje</th>
+            </tr>
+        </thead>
+        <tbody class="table-light">
+        {% for form in objects %}
+            <tr>
+                <td>{{form.instance.person_id}}</td>
+                <td>{{form.attendance_type}}<div class="d-none">{{form.person_id}}</div></td>
+                <td><a class="btn btn-primary" href="/person/{{form.instance.person_id.id}}/data">Zobacz uczesnika</a> <a class="btn btn-danger" href="/events/{{event.id}}/person/{{form.instance.person_id.id}}/delete_attendance">Wypisz</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <input class="btn btn-primary" type="submit" value="Zapisz" />
+    <input type="hidden" name="referer" value="{{request.META.HTTP_REFERER}}" />
+    <a class="btn btn-outline-dark" href="{{request.META.HTTP_REFERER}}">Anuluj</a>
+</form>
+{% endblock content %}

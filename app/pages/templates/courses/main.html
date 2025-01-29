@@ -1,0 +1,16 @@
+{% extends "browse/main.html" %}
+
+{% block head %}
+{{ block.super }}
+<h4>
+    {{object}} 
+    <a href="/course/{{object.id}}/semesters">Semestry</a>
+    <a href="/course/{{object.id}}/data">Dane</a> 
+</h4>
+<hr>
+
+{% endblock head %}
+
+{% block content %}
+{{ block.super }}
+{% endblock content %}

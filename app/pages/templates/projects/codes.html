@@ -1,0 +1,27 @@
+{% extends "projects/main.html" %}
+
+{% block content %}
+{{block.super}}
+<div>
+    <table style="width:100%", id="browse_table">
+        <div>
+            <tr>
+                <th onclick="sortTable(0)">Kod<a id="th0"></a></th>
+                <th onclick="sortTable(1)">Rodzaj<a id="th1"></a></th>
+                <th onclick="sortTable(2)">Nazwa rodzaju aktywności/ wydarzenia<a id="th2"></a></th>
+                <th>Opcje</th>
+              </tr>
+            {% for code in objects %}
+            <tr>
+                <td>{{code.code}}</td>
+                <td>{{code.type}}</td>
+                <td>{{code.name}}</td>
+                <td><a href="/projects/{{object.id}}/codes/{{code.cid}}/edit">Edytuj</a> 
+                    <a href="/projects/{{object.id}}/codes/{{code.cid}}/delete">Usuń</a></td>
+            </tr>
+            {% endfor %}
+        </div>
+    </table>
+    <h4><a href="/projects/{{object.id}}/add_code">Dodaj kod</a></h4>
+</div>
+{% endblock content %}

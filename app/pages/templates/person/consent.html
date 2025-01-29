@@ -1,0 +1,12 @@
+{% extends "person/main.html" %}
+
+{% block content %}
+{{block.super}}
+<div>
+<h4>Zgoda</h4>
+{% csrf_token %}
+{{form.as_p}}
+
+<h4><a href="/person/{{object.id}}/consent/{{consent.consent_id}}/edit">Edytuj</a></h4>
+</div>
+{% endblock content %}

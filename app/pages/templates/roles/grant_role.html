@@ -1,0 +1,44 @@
+{% extends "browse/main.html" %}
+
+{% block content %}
+<h4>Daj rolę "{{role}}" osobie</h4>
+<div class="position-fixed start-50 translate-middle-x">
+    <div class="card">
+    <form method="POST" action="">
+        {% csrf_token %}
+        <div class="card-body" style="width: 30rem;">
+            {% for hidden_field in form.hidden_fields %}
+                {{ hidden_field }}
+            {% endfor %}
+
+            {% for field in form.visible_fields %}
+                <div class="form-group">
+                {{ field.label_tag }}
+                {% render_field field class="form-control" %}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <input class="btn btn-success" type="submit" value="Daj rolę" />
+        <input type="hidden" name="referer" value="{{request.META.HTTP_REFERER}}" />
+        <a class="btn btn-outline-dark" href="{{request.META.HTTP_REFERER}}">Anuluj</a>
+    </form>
+    </div>
+</div>
+<!-- <div>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <label for="person">Wybierz osobę: </h4>
+        <select name="person" id="person">
+            {% for p in people %}
+            <option value="{{p.id}}">{{p}}</option>
+            {% endfor %}
+        </select> -->
+        <!-- <br><br>
+        <input type="submit" value="Daj rolę" />
+        <a href="{{request.META.HTTP_REFERER}}">Anuluj</a>
+    </form>
+</div> -->
+{% endblock content %}

@@ -1,0 +1,15 @@
+{% extends "events/main.html" %}
+
+{% block content %}
+<h3>{{event}}</h3>
+
+<div>
+    <form method="POST" action="">
+        {% csrf_token %}
+        {{form.as_p}}
+        <input type="submit" value="Zapisz" />
+        <a href="/events/{{event.id}}/data">Anuluj</a>
+    </form>
+</div>
+
+{% endblock content %}

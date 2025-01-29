@@ -1,0 +1,59 @@
+{% extends "person/main.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+{{block.super}}
+<div class="position-fixed start-50 translate-middle-x">
+    <div class="card">
+        <div class="card-body" style="width: 30rem;">
+            <table id="browse_table" class="table table-borderless">
+                <tbody class="table-light">
+                    <tr>
+                        <td scope="col" style="width: 60%;">{{person}}</td>
+                        <td scope="col">
+                            <a class="btn btn-info btn-sm" href="/person/{{activity.person_id.id}}/data">Zobacz</a>
+                        </td>
+                    </tr>
+                    {% if semester %}
+                    <tr>
+                        <td scope="col" style="width: 70%;">{{semester.course_id}} {{semester}}</td>
+                        <td scope="col">
+                            <a class="btn btn-info btn-sm" href="/course/{{activity.course_id.id}}/semester/{{activity.semester_id.id}}/dates">Zobacz</a>
+                            <a class="btn btn-danger btn-sm" href="/person/{{activity.person_id.id}}/activity_type/{{activity.activity_type_id.id}}/activity/{{activity.activity_id}}/delete_course">Usuń</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td scope="col" colspan="2">
+                            <a class="btn btn-info btn-sm" href="/course/{{activity.course_id.id}}/semester/{{activity.semester_id.id}}/dates">Dodaj kurs</a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <br>
+    <div class="card">
+        <div class="card-body" style="width: 30rem;">
+            {% for hidden_field in form.hidden_fields %}
+                {{ hidden_field }}
+            {% endfor %}
+
+            {% for field in form.visible_fields %}
+                <div class="form-group">
+                {{ field.label_tag }}
+                {% render_field field class="form-control" %}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <a class="btn btn-secondary" href="/person/{{activity.person_id.id}}/activity_type/{{activity.activity_type_id.id}}/activity/{{activity.activity_id}}/edit">Edytuj</a>
+    </div>
+</div>
+
+{% endblock content %}
+
+

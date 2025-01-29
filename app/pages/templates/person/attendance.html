@@ -1,0 +1,30 @@
+{% extends "person/main.html" %}
+
+{% block head %}
+{{ block.super }}
+<h4>
+    Kurs: {{semester.course_id}} Semestr: {{semester.name}}
+</h4>
+<hr>
+{% endblock head %}
+
+{% block content %}
+{{ block.super }}
+<div>
+    <table style="width:100%", id="browse_table">
+        <div>
+            <tr>
+                <th onclick="sortTable(0)">Termin<a id="th0"></a></th>
+                <th onclick="sortTable(1)">Obecność<a id="th1"></a></th>
+              </tr>
+            {% for attendance in objects %}
+            <tr>
+                <td>{{attendance.date_id.date}}</td>
+                <td>{{attendance.attendance_type}}</td>
+            </tr>
+            {% endfor %}
+        </div>
+    </table>
+<h4><a href="/person/{{object.id}}/course/{{semester.course_id.id}}/semester/{{semester.id}}/attendance/edit">Edytuj</a></h4>
+</div>
+{% endblock content %}

@@ -1,0 +1,30 @@
+{% extends "browse/main.html" %}
+
+{% block content %}
+{{block.super}}
+
+<h4><a href="/browse/activites">Przeglądaj</a>
+    <a href="/browse/activity_types">Rodzaje aktywności</a> 
+</h4>
+<hr>
+<h4><a href="/add/activity_type">Dodaj rodzaj aktywności</a></h4>
+<div>
+    <table style="width:100%" id="browse_table">
+        <div>
+            <tr>
+                <th onclick="sortTable(0)">Nazwa rodzaju aktywności<a id="th0"></a></th>
+                <th>Opcje</th>
+              </tr>
+            {% for activity_type in objects %}
+            <tr>
+                <td>{{activity_type.name}}</td>
+                <td>
+                    <a href="/activity_type/{{activity_type.id}}/delete">Usuń</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </div>
+    </table>
+</div>
+
+{% endblock content %}

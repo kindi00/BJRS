@@ -1,0 +1,18 @@
+{% extends "browse/main.html" %}
+
+{% block head %}
+{{ block.super }}
+<h4>
+    <a href="/browse/activites">Przeglądaj</a>
+    <a href="/browse/activity_types">Rodzaje aktywności</a>
+</h4>
+<hr>
+<h4>
+    {{activity.activity_type_id}}
+</h4>
+<hr>
+{% endblock head %}
+
+{% block content %}
+{{block.super}}
+{% endblock content %}

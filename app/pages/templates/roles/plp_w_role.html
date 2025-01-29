@@ -1,0 +1,27 @@
+{% extends "roles/main.html" %}
+
+{% block content %}
+{{block.super}}
+<div>
+    {% if plp_w_role|length > 0 %}
+    <table style="width:100%", id="browse_table">
+        <div>
+            <tr>
+                <th onclick="sortTable(0)">Osoba<a id="th0"></a></th>
+                <th>Opcje</th>
+              </tr>
+            {% for person in plp_w_role %}
+            <tr>
+                <td>{{person}}</td>
+                <td><a href="/person/{{person.id}}/data">Zobacz</a> 
+                    <a href="/person/{{person.id}}/role/{{object.id}}/delete">Usuń</a></td>
+            </tr>
+            {% endfor %}
+        </div>
+    </table>
+    {% endif %}
+
+
+    <h5><a href="/roles/{{role.id}}/grant_role">Daj rolę osobie</a></h5>
+</div>
+{% endblock content %}

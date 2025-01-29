@@ -1,0 +1,16 @@
+{% extends "browse/main.html" %}
+
+{% block head %}
+{{ block.super }}
+<h4>
+    {{role}} 
+    <a href="/roles/{{role.id}}/data">Osoby z rolą</a> 
+    <a href="/roles/{{role.id}}/browse">Dozwolone aktywności</a>
+</h4>
+<hr>
+
+{% endblock head %}
+
+{% block content %}
+{{block.super}}
+{% endblock content %}

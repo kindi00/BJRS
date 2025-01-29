@@ -1,0 +1,33 @@
+{% extends "browse/main.html" %}
+
+{% block content %}
+
+<div class="position-fixed start-50 translate-middle-x">
+    <div class="card">
+        <form method="POST" action="">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="relationship">Dodaj </label>
+            <select name="relationship" id="relationship" class="form-control">
+                <option value="parent" selected>rodzica</option>
+                <option value="child">dziecko</option>
+            </select>
+        </div>
+        <div class="form-group">
+        <label for="member">Wybierz osobę: </label>
+        <select name="member" id="member" class="form-control">
+        <option value="">--------</option>
+            {% for p in people %}
+            <option value="{{p.id}}">{{p}}</option>
+            {% endfor %}
+        </select>
+        </div>
+        <div class="form-group">
+            <input class="btn btn-success" type="submit" value="Dodaj" />
+            <input type="hidden" name="referer" value="{{request.META.HTTP_REFERER}}" />
+            <a class="btn btn-outline-dark" href="{{request.META.HTTP_REFERER}}">Anuluj</a>
+        </div>
+        </form>
+</div>
+
+{% endblock content %}

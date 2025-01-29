@@ -1,0 +1,25 @@
+{% extends "person/main.html" %}
+
+{% block content %}
+{{block.super}}
+<h4><a href="/person/{{object.id}}/add_consent">Dodaj zgodę</a></h4>
+<div>
+    <table style="width:100%" id="browse_table">
+        <div>
+            <tr>
+                <th onclick="sortTable(0)">Powiązana aktywność<a id="th0"></a></th>
+                <th>Opcje</th>
+              </tr>
+            {% for consent in objects %}
+            <tr>
+                <td>{{consent.activity_type_id}}</td>
+                <td>
+                    <a href="/person/{{consent.person_id.id}}/consent/{{consent.consent_id}}/data">Zobacz</a>
+                    <a href="/person/{{consent.person_id.id}}/consent/{{consent.consent_id}}/delete">Usuń</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </div>
+    </table>
+</div>
+{% endblock content %}

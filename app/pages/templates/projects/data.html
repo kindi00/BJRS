@@ -1,0 +1,11 @@
+{% extends "projects/main.html" %}
+
+{% block content %}
+{{block.super}}
+<div>
+{% csrf_token %}
+{{form.as_p}}
+
+<h4><a href="/projects/{{object.id}}/data/edit">Edytuj</a></h4>
+</div>
+{% endblock content %}

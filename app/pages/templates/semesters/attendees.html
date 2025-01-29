@@ -1,0 +1,29 @@
+{% extends "semesters/main.html" %}
+
+{% block content %}
+{{ block.super }}
+<div>
+    <h3>Nauczyciel</h3>
+    <h4><a href="/person/{{object.teacher_id.id}}/data">{{object.teacher_id}}</a></h4>
+</div>
+<div>
+    <table style="width:100%", id="browse_table">
+        <div>
+            <tr>
+                <th onclick="sortTable(0)">Uczestnik<a id="th0"></a></th>
+                <th onclick="sortTable(1)">Opcje<a id="th1"></a></th>
+              </tr>
+            {% for attendee in attendees %}
+            <tr>
+                <td>{{attendee.person_id}}</td>
+                <td>
+                    <a href="/person/{{attendee.person_id.id}}/data">Zobacz</a> 
+                    <a href="/course/{{object.id}}/semester/{{semester.id}}/person/{{attendee.person_id.id}}/delete_attendance">Wypisz</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </div>
+    </table>
+<h4><a href="/course/{{object.id}}/semester/{{semester.id}}/add_attendee">Dodaj uczestnika</a></h4>
+</div>
+{% endblock content %}

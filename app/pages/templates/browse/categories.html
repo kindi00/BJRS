@@ -1,0 +1,38 @@
+{% extends "browse/main.html" %}
+
+{% block content %}
+{{block.super}}
+<table style="width:100%" id="browse_table" class="table table-hover table-bordered border-secondary">
+    <thead class="table-info">
+        <tr>
+            <th style="width: 35%;">Kategoria<a id="th0"></a></th>
+            <th>Opcje</th>
+            <th style="width: 35%;">Grupa<a id="th1"></a></th>
+            <th>Opcje</th>
+        </tr>
+    </thead>
+    <tbody class="table-light">
+    {% for category in objects %}
+        <tr>
+            <td rowspan="{{category.groups_set.all|length|add:1}}">{{category.name}}</td>
+            <td rowspan="{{category.groups_set.all|length|add:1}}">
+                <a class="btn btn-primary" href="/category/{{category.id}}/rename">Zmień nazwę</a>
+                <a class="btn btn-danger" href="/category/{{category.id}}/delete">Usuń</a>
+            </td>
+        </tr>
+        {% for group in category.groups_set.all %}
+        <tr>
+            <td>{{group.name}}</td>
+            <td><a class="btn btn-primary btn-sm" href="/group/{{group.id}}/rename">Zmień nazwę</a>
+                <a class="btn btn-danger btn-sm" href="/group/{{group.id}}/delete">Usuń</a></td>
+        </tr>
+        {% endfor %}
+    {% endfor %}
+    </tbody>
+</table>
+
+{% for button in buttons %}
+<a class="btn btn-primary" href="{{button.href}}">{{button.name}}</a>
+{% endfor %}
+
+{% endblock content %}

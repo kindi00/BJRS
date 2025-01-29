@@ -1,0 +1,48 @@
+{% extends "browse/main.html" %}
+
+{% block content %}
+<div>
+    <h3>
+        Jak ma wyglądać plik:
+    </h3>
+    <h4>
+        {{ desc|linebreaks }}
+    </h4>
+    <h3>
+        Przykładowy wygląd danych:
+    </h3>
+    <table id="browse_table" class="table table-bordered">
+    {% for table in tables %}
+    <thead class="table-light">
+        <tr>
+            {% for cell in table.header_cells %}
+            <th scope="col">{{cell.name}}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody class="table-light" id="{{table.body_name}}">
+        {% for field in table.rows %}
+        <tr>
+            {% for info in field.fields %}
+            <td scope="col">{{info.data}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+    {% endfor %}
+</table>
+
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <input class="form-control" type="file" id="file" name="file" accept=".csv" required>
+        </div>
+        <br>
+        <div class="form-group">
+            <input class="btn btn-success" type="submit" value="Importuj" />
+            <input type="hidden" name="referer" value="{{request.META.HTTP_REFERER}}" />
+            <a class="btn btn-outline-dark" href="{{request.META.HTTP_REFERER}}">Anuluj</a>
+        </div>
+    </form>
+</div>
+{% endblock content %}

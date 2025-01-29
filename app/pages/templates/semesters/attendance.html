@@ -1,0 +1,31 @@
+{% extends "semesters/main.html" %}
+
+{% block head %}
+{{ block.super }}
+<h4>
+    Termin: {{date.date|date:"d/m/Y"}} {{date.start_time|time:"H:i"}}-{{date.end_time|time:"H:i"}} 
+</h4>
+<hr>
+<br>
+{% endblock head %}
+
+{% block content %}
+{{ block.super }}
+<div>
+    <table style="width:100%", id="browse_table">
+        <div>
+            <tr>
+                <th onclick="sortTable(0)">Uczestnik<a id="th0"></a></th>
+                <th onclick="sortTable(1)">Obecność<a id="th1"></a></th>
+              </tr>
+            {% for attendee in objects %}
+            <tr>
+                <td>{{attendee.person_id}}</td>
+                <td>{{attendee.attendance_type}}</td>
+            </tr>
+            {% endfor %}
+        </div>
+    </table>
+<h4><a href="/course/{{object.id}}/semester/{{semester.id}}/dates/{{date.date_id}}/edit">Edytuj</a></h4>
+</div>
+{% endblock content %}

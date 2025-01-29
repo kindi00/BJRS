@@ -1,0 +1,11 @@
+{% extends "events/main.html" %}
+
+{% block content %}
+<div>
+
+{% csrf_token %}
+{{form.as_p}}
+
+<h4><a href="/events/{{object.id}}/data/edit">Edytuj</a></h4>
+</div>
+{% endblock content %}
