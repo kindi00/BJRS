@@ -145,7 +145,7 @@ BROWSE_NAV_ITEMS = [
     NavItem("Rodziny", "/browse/families"),
     NavItem("Role", "/browse/roles"),
     NavItem("Aktywności", "/browse/activites"),
-    NavItem("Kursy", "/browse/courses"),
+    NavItem("Kursy Językowe", "/browse/courses"),
     NavItem("Projekty", "/browse/projects"),
     NavItem("Wydarzenia", "/browse/events")
 ]
@@ -201,7 +201,7 @@ PERSON_NAV_ITEMS = [
     NavItem("Dane", "/person/%s/data"),
     NavItem("Rodzina", "/person/%s/family"),
     NavItem("Role", "/person/%s/roles"),
-    NavItem("Kursy", "/person/%s/courses"),
+    NavItem("Kursy Językowe", "/person/%s/courses"),
     NavItem("Aktywności", "/person/%s/activities"),
     NavItem("Zgody", "/person/%s/consents"),
     NavItem("Wydarzenia", "/person/%s/events")
@@ -467,7 +467,7 @@ class BrowseActivityTypesView(BrowseView):
 
 class BrowseCoursesView(BrowseView):
     model = Courses
-    active_nav_items = ["Kursy"]
+    active_nav_items = ["Kursy Językowe"]
     header_cells = [
         HeaderCell("Nazwa", 0, "th0", True),
         HeaderCell("Opis", None, None, False),
@@ -864,7 +864,7 @@ class AddSemesterDatesView(AddMulPKView):
     title = "Dodaj termin"
     form = SemesterDatesForm
     nav_bars = [BROWSE_NAV_ITEMS, COURSES_NAV_ITEMS, SEMESTERS_NAV_ITEMS]
-    active_nav_items = ["Kursy", "Semestry", "Terminy"]
+    active_nav_items = ["Kursy Językowe", "Semestry", "Terminy"]
 
     def _get_instances(self, **kwargs):
         return [Courses.objects.get(id=kwargs['fpk']), Semesters.objects.get(course_id=kwargs['fpk'], id=kwargs['spk'])]
@@ -882,7 +882,7 @@ class AddSemesterToPeopleSemestersView(AddMulPKView):
     title = "Dodaj uczestnika"
     form = PeopleSemestersForm
     nav_bars = [BROWSE_NAV_ITEMS, COURSES_NAV_ITEMS, SEMESTERS_NAV_ITEMS]
-    active_nav_items = ["Kursy", "Semestry", "Uczestnicy"]
+    active_nav_items = ["Kursy Językowe", "Semestry", "Uczestnicy"]
 
     def _get_instances(self, **kwargs):
         return [Courses.objects.get(id=kwargs['fpk']), Semesters.objects.get(course_id=kwargs['fpk'], id=kwargs['spk'])]
@@ -911,7 +911,7 @@ class AddPersonToPeopleSemestersView(AddMulPKView):
     form = PeopleSemestersForm
     model = People
     nav_bars = [BROWSE_NAV_ITEMS, PERSON_NAV_ITEMS]
-    active_nav_items = ["Osoby", "Kursy"]
+    active_nav_items = ["Osoby", "Kursy Językowe"]
 
     def expand_context(self, context: dict, **kwargs):
         semesters = Semesters.objects.all()
@@ -1114,7 +1114,7 @@ class PersonAddToEventView(AddMulPKView):
 
 
 class PersonCoursesView(ConcreteBrowseView):
-    active_nav_items = ["Osoby", "Kursy"]
+    active_nav_items = ["Osoby", "Kursy Językowe"]
     header_cells = [
         HeaderCell("Kurs", 0, "th0", True),
         HeaderCell("Semestr", 1, "th1", True),
@@ -1180,7 +1180,7 @@ class PersonEventsView(ConcreteBrowseView):
 
 
 class PersonAttendanceView(ConcreteBrowseView):
-    active_nav_items = ["Osoby", "Kursy", ""]
+    active_nav_items = ["Osoby", "Kursy Językowe", ""]
     nav_bars = [BROWSE_NAV_ITEMS, PERSON_NAV_ITEMS, []]
     header_cells = [
         HeaderCell("Termin", 0, "th0", True),
@@ -1326,7 +1326,7 @@ class PersonFamilyView(ConcreteBrowseView):
 
 
 class CoursesSemestersView(ConcreteBrowseView):
-    active_nav_items = ["Kursy", "Semestry"]
+    active_nav_items = ["Kursy Językowe", "Semestry"]
     nav_bars = [BROWSE_NAV_ITEMS, COURSES_NAV_ITEMS]
     header_cells = [
         HeaderCell("Semestr", 0, "th0", True),
@@ -1380,7 +1380,7 @@ class SemestersDataView(DataView):
     template_name = "person/data.html"
     model = Semesters
     form = SemesterForm
-    active_nav_items = ["Kursy", "Semestry", "Dane"]
+    active_nav_items = ["Kursy Językowe", "Semestry", "Dane"]
     nav_bars = [BROWSE_NAV_ITEMS, COURSES_NAV_ITEMS, SEMESTERS_NAV_ITEMS]
     edit_href = "/course/%s/semester/%s/data/edit"
 
@@ -1402,7 +1402,7 @@ class CourseView(DataView):
     template_name = "person/data.html"
     model = Courses
     form = CoursesForm
-    active_nav_items = ["Kursy", "Dane"]
+    active_nav_items = ["Kursy Językowe", "Dane"]
     nav_bars = [BROWSE_NAV_ITEMS, COURSES_NAV_ITEMS]
     edit_href = "/course/%s/data/edit"
 
@@ -1562,7 +1562,7 @@ class ImportCourseView(ImportView):
     desc = """Rozszerzenie: .csv
     Nauczyciel musi znajdować się w systemie w momencie importu
     """
-    active_nav_items = ["Kursy"]
+    active_nav_items = ["Kursy Językowe"]
     example_table = HTMLTable(
         header_cells=[HeaderCell("lp"), HeaderCell("nazwa"), HeaderCell("opis"), HeaderCell("nauczyciel")],
         rows=[
@@ -1584,7 +1584,7 @@ class ImportPeopleSemestersView(ImportView):
     desc = """Rozszerzenie: .csv
     Kursy oraz semestry muszą znajdować się w systemie w momencie importu
     """
-    active_nav_items = ["Kursy"]
+    active_nav_items = ["Kursy Językowe"]
     example_table = HTMLTable(
         header_cells=[HeaderCell("nazwa kursu"), HeaderCell("nazwa semestru"), HeaderCell("imie"), HeaderCell("nazwisko"), HeaderCell("telefon"), HeaderCell("mail"), HeaderCell("płeć"), HeaderCell("kraj"), HeaderCell("cecha charakterystyczna"), HeaderCell("opis")],
         rows=[
@@ -1632,7 +1632,7 @@ class ImportPeopleSemestersView(ImportView):
 
 class ImportSemestersView(ImportView):
     desc = "Rozszerzenie: .csv"
-    active_nav_items = ["Kursy"]
+    active_nav_items = ["Kursy Językowe"]
     example_table = HTMLTable(
         header_cells=[HeaderCell("nazwa kursu"), HeaderCell("opis kursu"), HeaderCell("nazwa semestru"), HeaderCell("mail nauczyciela")],
         rows=[
@@ -1704,7 +1704,7 @@ class EventsAttendeesView(ConcreteBrowseView, NavigationBar):
 
 
 class SemestersDatesView(ConcreteBrowseView):
-    active_nav_items = ["Kursy", "Semestry", "Terminy"]
+    active_nav_items = ["Kursy Językowe", "Semestry", "Terminy"]
     nav_bars = [BROWSE_NAV_ITEMS, COURSES_NAV_ITEMS, SEMESTERS_NAV_ITEMS]
     header_cells = [
         HeaderCell("Data", 0, "th0", True),
@@ -1739,7 +1739,7 @@ class SemestersDataEditView(TemplateView, NavigationBar):
     template_name = "add_from_form.html"
     extend_file = "browse/main.html"
     nav_bars = [BROWSE_NAV_ITEMS, COURSES_NAV_ITEMS, SEMESTERS_NAV_ITEMS]
-    active_nav_items = ["Kursy", "Semestry", "Dane"]
+    active_nav_items = ["Kursy Językowe", "Semestry", "Dane"]
 
     def post(self, request, fpk, spk):
         Semesters.objects.filter(course_id=fpk, id=spk).update(
@@ -1760,7 +1760,7 @@ class SemestersDataEditView(TemplateView, NavigationBar):
 
 class SemestersAttendeesView(ConcreteBrowseView):
     # TODO add teacher
-    active_nav_items = ["Kursy", "Semestry", "Uczestnicy"]
+    active_nav_items = ["Kursy Językowe", "Semestry", "Uczestnicy"]
     nav_bars = [BROWSE_NAV_ITEMS, COURSES_NAV_ITEMS, SEMESTERS_NAV_ITEMS]
     header_cells = [
         HeaderCell("Uczestnik", 0, "th0", True),
@@ -1937,7 +1937,7 @@ class CodesDataEditView(TemplateView, NavigationBar):
 
 class BrowseSemesterDatesView(ConcreteBrowseView):
     # TODO add teacher
-    active_nav_items = ["Kursy", "Semestry", "Terminy", ""]
+    active_nav_items = ["Kursy Językowe", "Semestry", "Terminy", ""]
     nav_bars = [BROWSE_NAV_ITEMS, COURSES_NAV_ITEMS, SEMESTERS_NAV_ITEMS, []]
     header_cells = [
         HeaderCell("Uczestnik", 0, "th0", True),
