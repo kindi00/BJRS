@@ -8,9 +8,44 @@
     <a href="/browse/people">Przeglądaj</a>
 </h3>
 {% else %}
-<div class="d justify-content-center">
-    <div class="input-group w-auto">
+<div class="container">
+    <div class="position-relative width: 20rem">
+    <div class="position-absolute start-50 translate-middle-x">
         <form method="POST" action="">
+            {% csrf_token %}
+            <div class="card text-center" style="width: 20rem;">
+                {% load static %}
+                <img src="{% static 'logo-09.2024.png' %}" class="card-img-top" alt="...">
+                <div class="card-body">
+                <p class="card-text">Witaj w Bazie Jezuickiej Służby Uchodźcom.</p>
+                <p class="card-text">Podaj nazwę użytkownika oraz hasło, aby się zalogować.</p>
+                </div>
+                <ul class="list-group list-group-flush">
+                <li class="list-group-item"><label>Nazwa użytkownika:</label>
+                    <input type="text" name="username", placeholder="Nazwa użytkownika" class="form-control"/>
+                    <label>Hasło:</label>
+                    <input type="password" name="password", placeholder="Hasło" class="form-control"/></li>
+                </ul>
+                <div class="card-body">
+                    <input class="btn btn-primary" type="submit" value="Zaloguj">
+                </div>
+            </div>
+        </form>
+    {% endif %}
+
+    {% if messages %}
+        <div class="card text-center" style="width: 20rem;">
+            <ul class="list-group list-group-flush">
+                {% for message in messages %}
+                <li{% if message.tags %} class="list-group-item"{% endif %}>{{message}}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+</div></div>
+
+        <!-- <form method="POST" action="">
             {% csrf_token %}
             <label>Nazwa użytkownika:</label>
             <input type="text" name="username", placeholder="Nazwa użytkownika" class="form-control"/>
@@ -19,16 +54,7 @@
         </div>
         <div class="input-group w-auto">
             <input class="btn btn-outline-dark" type="submit" value="Zaloguj">
-        </form>
-    </div>
-</div>
-{% endif %}
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{message.tags}}"{% endif %}>{{message}}</li>
-    {% endfor %}
-</ul>
-{% endif %}
+        </form> -->
+    <!-- </div> -->
 
 {% endblock content %}
