@@ -46,7 +46,7 @@ class Attendees(models.Model):
 
 class ActivityTypes(models.Model):
     id = models.SmallAutoField(primary_key=True, db_column='id')
-    name = models.CharField(max_length=20, unique=True, db_column='name', verbose_name='Nazwa')
+    name = models.CharField(max_length=50, unique=True, db_column='name', verbose_name='Nazwa')
     allowed_roles = models.ManyToManyField('Roles', through='RolesActivityTypes')
 
     class Meta:
@@ -160,7 +160,7 @@ class SelectAttendees(models.Model):
 
 class Categories(models.Model):
     id = models.SmallAutoField(primary_key=True)
-    name = models.CharField(unique=True, max_length=20)
+    name = models.CharField(unique=True, max_length=50)
 
     class Meta:
         managed = False
@@ -226,7 +226,7 @@ class Semesters(models.Model):
 
 class EventTypes(models.Model):
     id = models.SmallAutoField(primary_key=True)
-    name = models.CharField(unique=True, max_length=20, verbose_name="Nazwa rodzaju wydarzenia")
+    name = models.CharField(unique=True, max_length=50, verbose_name="Nazwa rodzaju wydarzenia")
 
     class Meta:
         managed = False
@@ -261,7 +261,7 @@ class Events(models.Model):
 
 class Groups(models.Model):
     id = models.SmallAutoField(primary_key=True)
-    name = models.CharField(unique=True, max_length=20, verbose_name="Nazwa")
+    name = models.CharField(unique=True, max_length=50, verbose_name="Nazwa")
     category = models.ForeignKey(Categories, models.CASCADE, blank=True, null=True, verbose_name="Kategoria")
 
     class Meta:
@@ -437,8 +437,8 @@ class Genders(models.Model):
 
 class People(models.Model):
     id = models.SmallAutoField(primary_key=True, db_column='pid')
-    name = models.CharField(LAN_PLP_NAME, max_length=20)
-    surname = models.CharField(LAN_PLP_SURNAME, max_length=20)
+    name = models.CharField(LAN_PLP_NAME, max_length=50)
+    surname = models.CharField(LAN_PLP_SURNAME, max_length=50)
     pcode = models.SmallIntegerField('Kod', null=True, validators=[MinValueValidator(1, "Kod nie może być mniejszy niż 1")])
     phone_nr = models.CharField(LAN_PLP_PHONE, max_length=15, blank=True, null=True)
     mail = models.CharField(max_length=50, unique=True)
