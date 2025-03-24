@@ -4,33 +4,15 @@
 {{block.super}}
 {% load widget_tweaks %}
 
-<form method="GET" action="">
-<div class="container d-flex justify-content-center">
 
-    <div class="input-group w-auto">
-        <input
-          name="q"
-          id="q"
-          type="text"
-          class="form-control"
-          placeholder="Wyszukaj..."
-          aria-label="Wyszukaj..."
-          aria-describedby="search-btn"
-          value="{{q}}"
-        />
-        <input data-mdb-button-init data-mdb-ripple-init class="btn btn-primary" type="submit" id="search-btn" data-mdb-ripple-color="dark" value="Szukaj">
-    </div>
-</div>
-<div class="container-fluid">
+<div class="container-fluid p-1">
 <div class="row">
 {% if filters %}
     <div class="col-2">
-        <h4>
-            <p>
-                Filtruj
-            </p>
-        </h4>
-        <div>
+        <div class="container p-1">
+        <h4><p>Filtruj</p></h4>
+        </div>
+        <div class="container p-1">
             {% for field in filters %}
                 <div class="form-group">
                 {% if field.field.widget.input_type != "checkbox" or field.field.widget.allow_multiple_selected %}
@@ -56,11 +38,32 @@
                 </div>
             {% endfor %}
         </div>
+        <div class="container p-1">
             <input data-mdb-button-init data-mdb-ripple-init class="btn btn-primary" type="submit" id="search-btn" data-mdb-ripple-color="dark" value="Szukaj">
-    </form> 
+        </div>
+        </form> 
     </div>
 {% endif %}
 <div class="col">
+
+    <form method="GET" action="">
+        <div class="container d-flex justify-content-center">
+        
+            <div class="input-group w-auto p-1">
+                <input
+                  name="q"
+                  id="q"
+                  type="text"
+                  class="form-control"
+                  placeholder="Wyszukaj..."
+                  aria-label="Wyszukaj..."
+                  aria-describedby="search-btn"
+                  value="{{q}}"
+                />
+                <input data-mdb-button-init data-mdb-ripple-init class="btn btn-primary" type="submit" id="search-btn" data-mdb-ripple-color="dark" value="Szukaj">
+            </div>
+        </div>
+
 <table id="browse_table" class="table table-striped table-hover table-bordered border-secondary">
     {% for table in tables %}
     <thead class="table-light">
