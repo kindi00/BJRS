@@ -234,19 +234,11 @@ class CategoriesForm(UpdateableForm):
         self.fields['name'].label = "Nazwa"
         self.fields['name'].help_text = "Nazwa może mieć maksymalną długość 20 znaków"
 
-    def clean(self):
-        self.cleaned_data['name'] = self.cleaned_data['name'].title()
-        return super().clean()
-
 
 class GroupsForm(UpdateableForm):
     class Meta:
         model = Groups
         fields = ['name', 'category']
-
-    def clean(self):
-        self.cleaned_data['name'] = self.cleaned_data['name'].title()
-        return super().clean()
 
 
 class ViewFamiliesForm(UpdateableForm):
