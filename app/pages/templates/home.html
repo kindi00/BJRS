@@ -8,14 +8,14 @@
     <a href="/browse/people">Przeglądaj</a>
 </h3>
 {% else %}
-<div class="container">
+<div class="container p-5">
     <div class="position-relative width: 20rem">
     <div class="position-absolute start-50 translate-middle-x">
         <form method="POST" action="">
             {% csrf_token %}
             <div class="card text-center" style="width: 20rem;">
                 {% load static %}
-                <img src="{% static 'logo-09.2024.png' %}" class="card-img-top" alt="...">
+                <img src="{% static 'logo-09.2024.png' %}" class="card-img-top p-3" alt="...">
                 <div class="card-body">
                 <p class="card-text">Witaj w Bazie Jezuickiej Służby Uchodźcom.</p>
                 <p class="card-text">Podaj nazwę użytkownika oraz hasło, aby się zalogować.</p>
