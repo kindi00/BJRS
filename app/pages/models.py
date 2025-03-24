@@ -25,8 +25,8 @@ LAN_PRO_DESC = "Opis projektu"
 
 class Attendees(models.Model):
     id = models.IntegerField(primary_key=True, db_column="dummy", default=1)
-    event = models.ForeignKey('Events', models.CASCADE, db_column='event_id', verbose_name="Wydarzenie")
-    group = models.ForeignKey('Groups', models.CASCADE, db_column='group_id', verbose_name="Grupa")
+    event = models.ForeignKey('Events', models.DO_NOTHING, db_column='event_id', verbose_name="Wydarzenie")
+    group = models.ForeignKey('Groups', models.DO_NOTHING, db_column='group_id', verbose_name="Grupa")
     no_attendees = models.IntegerField(db_column='no_atendees', verbose_name="Liczba uczestników", validators=[MinValueValidator(0, "Liczba uczestników nie może być mniejsza niż 0")])
 
     class Meta:
@@ -262,7 +262,7 @@ class Events(models.Model):
 class Groups(models.Model):
     id = models.SmallAutoField(primary_key=True)
     name = models.CharField(unique=True, max_length=50, verbose_name="Nazwa")
-    category = models.ForeignKey(Categories, models.CASCADE, blank=True, null=True, verbose_name="Kategoria")
+    category = models.ForeignKey(Categories, models.DO_NOTHING, blank=True, null=True, verbose_name="Kategoria")
 
     class Meta:
         managed = False
