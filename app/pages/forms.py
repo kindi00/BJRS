@@ -67,8 +67,10 @@ class CourseFilter(FilterForm):
 class EventFilter(FilterForm):
     field_order = ['name', 'id_event_type__name', 'date__gte', 'date__lte']
     id_event_type__name = CharField(max_length=50, required=False, widget=TextInput, label="Rodzaj wydarzenia")
-    date__gte = DateTimeField(required=False, widget=MyDateTimeInput, label="Od")
-    date__lte = DateTimeField(required=False, widget=MyDateTimeInput, label="Do")
+    date__gte = DateTimeField(required=False, widget=MyDateTimeInput, label="Start po")
+    date__lte = DateTimeField(required=False, widget=MyDateTimeInput, label="Start przed")
+    end_date__gte = DateTimeField(required=False, widget=MyDateTimeInput, label="Koniec po")
+    end_date__lte = DateTimeField(required=False, widget=MyDateTimeInput, label="Koniec przed")
 
     class Meta:
         model = Events
@@ -201,7 +203,8 @@ class EventForm(UpdateableForm):
         model = Events
         exclude = ['id']
         widgets = {
-            'date': MyDateTimeInput()
+            'date': MyDateTimeInput(),
+            'end_date': MyDateTimeInput()
         }
 
     def __init__(self, *args, **kwargs):
