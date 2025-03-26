@@ -95,6 +95,7 @@ urlpatterns = [
     path("course/<str:fpk>/semester/<str:spk>/dates/<str:tpk>/edit", login_required(views.EditAttendanceView.as_view(), login_url='/'), name="edit_attendance"),
     path("course/<str:fpk>/semester/<str:spk>/dates/<str:tpk>/delete", login_required(views.DeleteSemesterDates.as_view(), login_url='/'), name="delete_semester_dates"),
     path("activity_type/<str:fpk>/delete", login_required(views.get_delete(models.ActivityTypes).as_view(), login_url='/'), name="activity_types_delete"),
+    path("activity_type/<str:fpk>/rename", login_required(views.get_concrete_EditDataView("browse/main.html", models.ActivityTypes, forms.ActivityTypesForm, ["Aktywności", "Rodzaje aktywności"], [views.BROWSE_NAV_ITEMS, views.ACTIVITIES_NAV_ITEMS], 2).as_view(), login_url='/'), name="activity_types_rename"),
     path("roles/<str:fpk>/activity_type/add", login_required(views.get_concrete_AddMulPKView({'fpk': 'rid'}, "Dodaj dozwolony rodzaj aktywności", forms.RolesActivityTypesForm, models.Roles, [views.BROWSE_NAV_ITEMS, views.ROLES_NAV_ITEMS], ["Role", "Dozwolone aktywności"]).as_view(), login_url='/'), name="role_add_activity_type"),
     path("roles/<str:fpk>/activity_type/<str:spk>/delete", login_required(views.DeleteRolesActivityTypesView.as_view(), login_url='/'), name="role_delete_activity_type"),
     path("add_activity", login_required(views.AddActivityView.as_view(), login_url='/'), name="add_activity"),

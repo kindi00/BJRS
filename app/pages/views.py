@@ -135,6 +135,7 @@ class NavigationBar:
         }
         output = self.nav_bars[:first_setable_bar]
         for i, nav_bar in enumerate(self.nav_bars[first_setable_bar:]):
+            print(i, nav_bar)
             data_items = [NavItem(item.name, item.href % tuple([kwargs[d[x]] for x in range(i+1)]), item.isActive) for item in nav_bar]
             output += [[NavItem(instances[i], isDisabled=True)] + data_items]
         return output
