@@ -4,7 +4,7 @@
 {{block.super}}
 {% load widget_tweaks %}
 
-
+<form method="GET" action="">
 <div class="container-fluid p-1">
 <div class="row">
 {% if filters %}
@@ -45,10 +45,7 @@
     </div>
 {% endif %}
 <div class="col">
-
-    <form method="GET" action="">
         <div class="container d-flex justify-content-center">
-        
             <div class="input-group w-auto p-1">
                 <input
                   name="q"
