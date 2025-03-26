@@ -83,6 +83,12 @@
             {% for info in field.fields %}
             {% if info.type == 'data' %}
             <td scope="col">{{info.data}}</td>
+            {% elif info.type == 'datetime' %}
+            <td scope="col">{{ info.data|date:"d.m.Y, H:i" }}</td>
+            {% elif info.type == 'date' %}
+            <td scope="col">{{ info.data|date:"d.m.Y" }}</td>
+            {% elif info.type == 'time' %}
+            <td scope="col">{{ info.data|time:"H:i" }}</td>
             {% elif info.type == 'link' %}
             <td scope="col">
                 {% for link in info.data %}

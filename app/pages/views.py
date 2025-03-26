@@ -35,7 +35,7 @@ class HeaderCell:
 @dataclass
 class DataCell:
     type: str
-    """ Either 'data' or 'link' """
+    """ One of: 'data', 'link', 'date', 'time', 'datetime' """
     data: any
 
 
@@ -420,7 +420,7 @@ class BrowseActivitiesView(BrowseView):
         return [HTMLRow([
                 DataCell('data', o.activity_type_id.name),
                 DataCell('data', o.person_id),
-                DataCell('data', o.date),
+                DataCell('datetime', o.date),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/delete")])
                 ], onclick=f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/data") for o in objects]
@@ -533,7 +533,7 @@ class BrowseEventsView(BrowseView):
     def _get_fields(self, objects):
         return [HTMLRow([
                 DataCell('data', o.name),
-                DataCell('data', o.date),
+                DataCell('datetime', o.date),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/events/{o.id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/events/{o.id}/delete")])
                 ], onclick=f"/events/{o.id}/data") for o in objects]
@@ -1189,7 +1189,7 @@ class PersonAttendanceView(ConcreteBrowseView):
 
     def _get_fields(self, objects, **kwargs):
         return [HTMLRow([
-                DataCell('data', o.date_id.date),
+                DataCell('datetime', o.date_id.date),
                 DataCell('data', o.attendance_type)
                 ]) for o in objects]
 
@@ -1241,7 +1241,7 @@ class PersonActivitiesView(ConcreteBrowseView):
     def _get_fields(self, objects, **kwargs):
         return [HTMLRow([
                 DataCell('data', o.activity_type_id.name),
-                DataCell('data', o.date),
+                DataCell('datetime', o.date),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/delete")])
                 ], onclick=f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/data") for o in objects]
@@ -1716,9 +1716,9 @@ class SemestersDatesView(ConcreteBrowseView):
 
     def _get_fields(self, objects, **kwargs):
         return [HTMLRow([
-                DataCell('data', o.date),
-                DataCell('data', o.start_time),
-                DataCell('data', o.end_time),
+                DataCell('date', o.date),
+                DataCell('time', o.start_time),
+                DataCell('time', o.end_time),
                 DataCell('link', [Link("Zobacz obecności", "btn btn-info btn-sm", f"/course/{o.course_id.id}/semester/{o.semester_id.id}/dates/{o.date_id}"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/course/{o.course_id.id}/semester/{o.semester_id.id}/dates/{o.date_id}/delete")])
                 ], onclick=f"/course/{o.course_id.id}/semester/{o.semester_id.id}/dates/{o.date_id}") for o in objects]
