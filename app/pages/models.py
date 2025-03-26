@@ -93,7 +93,7 @@ class Activities(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.activity_type_id} {self.date}"
+        return f"{self.activity_type_id} {self.date.strftime('%d.%m.%Y, %H:%M')}"
 
 
 class Codes(models.Model):
