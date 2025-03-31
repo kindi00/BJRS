@@ -208,7 +208,7 @@ CREATE OR REPLACE VIEW view_codes AS SELECT 0 as dummy, project_id, id, event_ty
 CREATE OR REPLACE VIEW view_semester_dates AS SELECT 0 as dummy, course_id, semester_id, date_id, date, start_time, end_time from SEMESTER_DATES;
 CREATE OR REPLACE VIEW view_attendance AS SELECT 0 as dummy, course_id, semester_id, date_id, person_id, attendance_type from ATTENDANCE;
 CREATE OR REPLACE VIEW view_people_semesters AS SELECT 0 as dummy, course_id, semester_id, person_id from PEOPLE_SEMESTERS;
-CREATE OR REPLACE VIEW view_activities AS SELECT 0 as dummy, activity_id, activity_type_id, person_id, date, notes, course_id, semester_id FROM ACTIVITIES;
+CREATE OR REPLACE VIEW view_activities AS SELECT 0 as dummy, activity_id, activity_type_id, person_id, date, dedicated_time, notes, course_id, semester_id FROM ACTIVITIES;
 CREATE OR REPLACE VIEW view_consents AS SELECT 0 as dummy, person_id, consent_id, activity_id, activity_type_id, address, notes FROM CONSENTS;
 CREATE OR REPLACE VIEW view_people_events AS SELECT 0 as dummy, event_id, person_id, attendance_type from PEOPLE_EVENTS;
 
@@ -450,11 +450,11 @@ RETURNS TRIGGER
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO ACTIVITIES(activity_type_id, person_id, date, notes, course_id, semester_id) 
-        VALUES(NEW.activity_type_id, NEW.person_id, NEW.date, NEW.notes, NEW.course_id, NEW.semester_id);
+        INSERT INTO ACTIVITIES(activity_type_id, person_id, date, dedicated_time, notes, course_id, semester_id) 
+        VALUES(NEW.activity_type_id, NEW.person_id, NEW.date, NEW.dedicated_time, NEW.notes, NEW.course_id, NEW.semester_id);
     ELSIF TG_OP = 'UPDATE' THEN
         UPDATE ACTIVITIES
-        SET date = NEW.date, notes = NEW.notes, course_id = NEW.course_id, semester_id = NEW.semester_id, activity_type_id = NEW.activity_type_id
+        SET date = NEW.date, dedicated_time = NEW.dedicated_time, notes = NEW.notes, course_id = NEW.course_id, semester_id = NEW.semester_id, activity_type_id = NEW.activity_type_id
         WHERE activity_id = OLD.activity_id AND activity_type_id = OLD.activity_type_id AND person_id = OLD.person_id;
     ELSIF TG_OP = 'DELETE' THEN
         DELETE FROM ACTIVITIES
