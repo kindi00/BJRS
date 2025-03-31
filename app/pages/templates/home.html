@@ -3,11 +3,14 @@
 
 {% block content %}
 {{block.super}}
+
 {% if request.user.is_authenticated %}
+<!-- default view -->
 <h3>
     <a href="/browse/people">Przeglądaj</a>
 </h3>
 {% else %}
+<!-- log in view -->
 <div class="container p-5">
     <div class="position-relative width: 20rem">
     <div class="position-absolute start-50 translate-middle-x">
@@ -44,17 +47,5 @@
     </div>
     {% endif %}
 </div></div>
-
-        <!-- <form method="POST" action="">
-            {% csrf_token %}
-            <label>Nazwa użytkownika:</label>
-            <input type="text" name="username", placeholder="Nazwa użytkownika" class="form-control"/>
-            <label>Hasło:</label>
-            <input type="password" name="password", placeholder="Hasło" class="form-control"/>
-        </div>
-        <div class="input-group w-auto">
-            <input class="btn btn-outline-dark" type="submit" value="Zaloguj">
-        </form> -->
-    <!-- </div> -->
 
 {% endblock content %}
