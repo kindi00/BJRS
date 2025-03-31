@@ -7,11 +7,11 @@
     {% for item in nav_items %}
     <li class="nav-item">
         {% if item.isDisabled %}
-        <a class="nav-link disabled" aria-current="page" href="{{item.href}}">{{item.name}}</a> 
+        <a class="nav-link disabled" aria-current="page" href="{{item.href}}">{{ item.name|default_if_none:"" }}</a> 
         {% elif item.isActive %}
-        <a class="nav-link active" aria-current="page" href="{{item.href}}">{{item.name}}</a> 
+        <a class="nav-link active" aria-current="page" href="{{item.href}}">{{ item.name|default_if_none:"" }}</a> 
         {% else %}
-        <a class="nav-link" href="{{item.href}}">{{item.name}}</a> 
+        <a class="nav-link" href="{{item.href}}">{{ item.name|default_if_none:"" }}</a> 
         {% endif %}
     </li>
     {% endfor %}

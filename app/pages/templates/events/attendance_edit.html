@@ -19,8 +19,8 @@
         <tbody class="table-light">
         {% for form in objects %}
             <tr>
-                <td>{{form.instance.person_id}}</td>
-                <td>{{form.attendance_type}}<div class="d-none">{{form.person_id}}</div></td>
+                <td>{{ form.instance.person_id }}</td>
+                <td>{{ form.attendance_type }}<div class="d-none">{{ form.person_id }}</div></td>
                 <td><a class="btn btn-primary" href="/person/{{form.instance.person_id.id}}/data">Zobacz uczesnika</a> <a class="btn btn-danger" href="/events/{{event.id}}/person/{{form.instance.person_id.id}}/delete_attendance">Wypisz</a></td>
             </tr>
             {% endfor %}

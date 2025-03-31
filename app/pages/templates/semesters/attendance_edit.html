@@ -18,8 +18,8 @@
         <tbody class="table-light">
         {% for form in objects %}
             <tr>
-                <td>{{form.instance.person_id}}</td>
-                <td>{{form.attendance_type}}<div class="d-none">{{form.person_id}}</div></td>
+                <td>{{ form.instance.person_id }}</td>
+                <td>{{ form.attendance_type|default_if_none:"" }}<div class="d-none">{{ form.person_id }}</div></td>
             </tr>
             {% endfor %}
         </tbody>

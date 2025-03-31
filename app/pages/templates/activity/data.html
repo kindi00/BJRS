@@ -16,7 +16,7 @@
                     </tr>
                     {% if semester %}
                     <tr>
-                        <td scope="col" style="width: 70%;">{{semester.course_id}} {{semester}}</td>
+                        <td scope="col" style="width: 70%;">{{ semester.course_id }} {{ semester }}</td>
                         <td scope="col">
                             <a class="btn btn-info btn-sm" href="/course/{{activity.course_id.id}}/semester/{{activity.semester_id.id}}/dates">Zobacz</a>
                             <a class="btn btn-danger btn-sm" href="/person/{{activity.person_id.id}}/activity_type/{{activity.activity_type_id.id}}/activity/{{activity.activity_id}}/delete_course">Usuń</a>

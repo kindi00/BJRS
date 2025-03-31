@@ -4,7 +4,7 @@
 <div class="card text-center">
     <form method="POST" action="">
         {% csrf_token %}
-        <h2>Czy na pewno chcesz usunąć "{{obj}}?"</h2>
+        <h2>Czy na pewno chcesz usunąć "{{ obj }}?"</h2>
         <input class="btn btn-danger" type="submit" value="Tak" />
         <input type="hidden" name="referer" value="{{request.META.HTTP_REFERER}}" />
         <a class="btn btn-outline-dark" href="{{request.META.HTTP_REFERER}}">Anuluj</a>

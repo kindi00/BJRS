@@ -19,12 +19,12 @@
         <tbody class="table-light">
             {% for category, groups in attendees.items %}
                 <tr>
-                    <td rowspan="{{groups|length|add:1}}">{{category}}</td>
+                    <td rowspan="{{groups|length|add:1}}">{{ category }}</td>
                 </tr>
                 {% for group in groups %}
                 <tr>
-                <td>{{group.group}}</td>
-                <td>{{group.no_attendees}}</td>
+                <td>{{ group.group }}</td>
+                <td>{{ group.no_attendees }}</td>
                     <td>
                         <a class="btn btn-primary btn-sm" href="/events/{{object.id}}/attendees/{{group.group.id}}/edit">Zmień liczbę uczestników</a> 
                         <a class="btn btn-danger btn-sm" href="/attendees/{{object.id}}/{{group.group.id}}/delete">Usuń</a>

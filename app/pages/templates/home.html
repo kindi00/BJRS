@@ -40,7 +40,7 @@
         <div class="card text-center" style="width: 20rem;">
             <ul class="list-group list-group-flush">
                 {% for message in messages %}
-                <li{% if message.tags %} class="list-group-item"{% endif %}>{{message}}</li>
+                <li{% if message.tags %} class="list-group-item"{% endif %}>{{ message }}</li>
                 {% endfor %}
             </ul>
         </div>

@@ -16,7 +16,7 @@
     <thead class="table-light">
         <tr>
             {% for cell in table.header_cells %}
-            <th scope="col">{{cell.name}}</th>
+            <th scope="col">{{ cell.name }}</th>
             {% endfor %}
         </tr>
     </thead>
@@ -24,7 +24,7 @@
         {% for field in table.rows %}
         <tr>
             {% for info in field.fields %}
-            <td scope="col">{{info.data}}</td>
+            <td scope="col">{{ info.data }}</td>
             {% endfor %}
         </tr>
         {% endfor %}

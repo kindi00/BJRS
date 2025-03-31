@@ -14,7 +14,7 @@
     <tbody class="table-light">
     {% for category in objects %}
         <tr>
-            <td rowspan="{{category.groups_set.all|length|add:1}}">{{category.name}}</td>
+            <td rowspan="{{category.groups_set.all|length|add:1}}">{{ category.name|default_if_none:"" }}</td>
             <td rowspan="{{category.groups_set.all|length|add:1}}">
                 <a class="btn btn-primary" href="/category/{{category.id}}/rename">Zmień nazwę</a>
                 <a class="btn btn-danger" href="/category/{{category.id}}/delete">Usuń</a>
@@ -32,7 +32,7 @@
 </table>
 
 {% for button in buttons %}
-<a class="btn btn-primary" href="{{button.href}}">{{button.name}}</a>
+<a class="btn btn-primary" href="{{button.href}}">{{ button.name }}</a>
 {% endfor %}
 
 {% endblock content %}
