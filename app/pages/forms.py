@@ -22,13 +22,15 @@ class FilterForm(ModelForm):
 
 
 class PeopleFilter(FilterForm):
-    field_order = ['name', 'surname', 'pcode', 'phone_nr', 'mail', 'is_adult', 'gender', 'country_code', 'description', 'notes']
+    field_order = ['name', 'surname', 'pcode', 'phone_nr', 'mail', 'is_adult', 'gender', 'country_code', 'description', 'notes', 'when_added__gte', 'when_added__lte']
     is_adult = ChoiceField(label='Czy pełnoletni', choices=(
             ("", ("---------")),
             ("unknown", ("Brak informacji")),
             ("true", ("Tak")),
             ("false", ("Nie")),
         ))
+    when_added__gte = DateTimeField(required=False, widget=MyDateTimeInput, label="Dodane przed")
+    when_added__lte = DateTimeField(required=False, widget=MyDateTimeInput, label="Dodane po")
 
     class Meta:
         model = People
@@ -370,13 +372,14 @@ class ActivitiesForm(UpdateableForm):
     checkbox = BooleanField(required=False, label="Dołącz kurs do aktywności", widget=CheckboxInput(
         attrs={'type': 'checkbox', 'onchange': 'toggleDisabled(this.checked, ["course", "semester"])', 'id': 'checkbox'}
     ))
-    field_order = ['activity_type_id', 'person_id', 'notes', 'checkbox', 'course_id', 'semester_id']
+    field_order = ['activity_type_id', 'person_id', 'date', 'dedicated_time', 'notes', 'checkbox', 'course_id', 'semester_id']
 
     class Meta:
         model = Activities
         exclude = ['id', 'activity_id']
         widgets = {
-            'date': MyDateTimeInput()  # TODO add to template
+            'date': MyDateTimeInput(),
+            'dedicated_time': MyTimeInput(),
         }
 
     def __init__(self, *args, **kwargs):

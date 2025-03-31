@@ -11,13 +11,13 @@ CREATE TABLE IF NOT EXISTS PEOPLE (
     surname       VARCHAR(50) NOT NULL,
     pcode         SMALLINT,
     phone_nr      VARCHAR(15),
-    mail          VARCHAR(50) NOT NULL,
+    mail          VARCHAR(50),
     is_adult      BOOLEAN,
     gender        SMALLINT,
     country_code  VARCHAR(30),
     description   VARCHAR(50),
     notes         VARCHAR(200),
-    UNIQUE (mail),
+    UNIQUE NULLS DISTINCT (mail),
     CONSTRAINT fk_gender FOREIGN KEY(gender) REFERENCES GENDERS(id)
 );
 CREATE TABLE IF NOT EXISTS FAMILIES (
@@ -156,6 +156,7 @@ CREATE TABLE IF NOT EXISTS ACTIVITIES (
     person_id           SMALLINT NOT NULL,
     date                TIMESTAMP NOT NULL,
     notes               VARCHAR(2000),
+    dedicated_time      TIME NOT NULL,
     -- consent_id          SMALLINT,
     course_id           SMALLINT,
     semester_id         SMALLINT,

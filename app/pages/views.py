@@ -314,6 +314,7 @@ class BrowsePeopleView(BrowseView):
         HeaderCell("Imię i Nazwisko", 0, "th0", True),
         HeaderCell("Telefon", 1, "th1", True),
         HeaderCell("Mail", 2, "th2", True),
+        HeaderCell("Kraj pochodzenia", 3, "th3", True),
         HeaderCell("Opcje", None, None, False)
     ]
     filter_form = PeopleFilter
@@ -324,6 +325,7 @@ class BrowsePeopleView(BrowseView):
                 DataCell('data', o),
                 DataCell('data', o.phone_nr),
                 DataCell('data', o.mail),
+                DataCell('data', o.country_code),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.id}/delete")])
                 ], onclick=f"/person/{o.id}/data"
@@ -338,12 +340,19 @@ class BrowsePeopleView(BrowseView):
         if 'gender__icontains' in kwargs.keys():
             kwargs['gender'] = kwargs.pop('gender__icontains')
         return self.model.objects.annotate(full_name=Concat('name', Value(' '), 'surname', Value(' '), 'pcode', output_field=CharField())).filter(
-            Q(full_name=q) |
+            (Q(mail__isnull=True) & (Q(full_name=q) |
+                                     Q(phone_nr__icontains=q) |
+                                     Q(country_code__icontains=q) |
+                                     Q(is_adult__icontains=q) |
+                                     Q(gender__name__icontains=q) |
+                                     Q(description__icontains=q) |
+                                     Q(notes__icontains=q))) |
+            Q(full_name__icontains=q) |
             Q(phone_nr__icontains=q) |
             Q(country_code__icontains=q) |
             Q(is_adult__icontains=q) |
             Q(gender__name__icontains=q) |
-            Q(mail__icontains=q) |
+            (Q(mail__isnull=False) & Q(mail__icontains=q)) |
             Q(description__icontains=q) |
             Q(notes__icontains=q), **kwargs
             )
