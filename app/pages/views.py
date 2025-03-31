@@ -1609,6 +1609,8 @@ class ImportPeopleSemestersView(ImportView):
         people_list = []
         for row in data:
             try:
+                if row['mail'] == '':
+                    raise People.DoesNotExist  # when mail is empty assume that person does not exist
                 person = People.objects.get(mail=row['mail'])
             except People.DoesNotExist:
                 people_list.append(
@@ -1631,6 +1633,10 @@ class ImportPeopleSemestersView(ImportView):
             course_id = Courses.objects.get(name=row['nazwa kursu'])
             try:
                 people_semesters = PeopleSemesters.objects.get(person_id=person, semester_id=semester, course_id=course_id)
+            except Courses.DoesNotExist:
+                ...
+            except Semesters.DoesNotExist:
+                ...
             except PeopleSemesters.DoesNotExist:
                 people_semesters_list.append(PeopleSemesters(
                     course_id=course_id,
