@@ -2,7 +2,7 @@
 {% load widget_tweaks %}
 
 {% block content %}
-{{dict|json_script:"dict"}}
+{{ dict|json_script:"dict" }}
 <script>
     function toggleDisabled(_checked, _ids) {
         for (let i = 0; i < _ids.length; i++) {

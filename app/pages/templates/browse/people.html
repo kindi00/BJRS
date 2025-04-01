@@ -3,6 +3,38 @@
 {% block content %}
 {{block.super}}
 {% load widget_tweaks %}
+{{ dict|json_script:"dict" }}
+<script>
+    function toggleDisabled(_checked, _ids) {
+        for (let i = 0; i < _ids.length; i++) {
+            let e = document.getElementById(_ids[i]);
+            if (!_checked) {
+                e.disabled = 1;
+            }
+            else if (i == 0 || (document.getElementById(_ids[i-1]).value) != "") {
+                e.disabled = 0;
+            }
+        }
+        if (_checked)
+            toggleChange();
+    }
+    function toggleChange() {
+    	const dict = JSON.parse(document.getElementById('dict').textContent);
+		var master = parseInt(document.getElementById('course').value);
+        var s = document.getElementById('semester');
+        if (isNaN(master)) {
+            s.value = "";
+            s.disabled = 1;
+        }
+        else {
+            s.value = dict[master].includes(parseInt(s.value)) ? s.value : "";
+            s.disabled = 0;
+        }
+        for (var i=0; i<s.length; i++) {
+            s[i].hidden = dict[master].includes(parseInt(s[i].value)) ? 0 : 1;
+        }
+    }
+</script>
 
 <form method="GET" action="">
 <div class="container-fluid p-1">
@@ -101,10 +133,41 @@
 </table>
 
 {% for button in buttons %}
-<a class="btn btn-primary" href="{{button.href}}">{{button.name}}</a>
+<a class="btn btn-primary" href="{{ button.href }}">{{ button.name }}</a>
+<!-- <a class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#{{ button
+ .target }}">{{ button
+ .name }}</a>
+
+<div class="modal fade" id="{{ button
+.target }}" tabindex="-1" aria-labelledby="l{{ button
+.name }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="l{{ button
+            .name }}">{{ button
+            .name }}</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            
+            {% include "
+            add_from_form.html" %}
+
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Zamknij</button>
+            <button type="button" class="btn btn-primary">Dodaj</button>
+        </div>
+        </div>
+    </div>
+</div> -->
+
 {% endfor %}
 </div>
 </div>
 </div>
+
+
 {% endblock content %}
 
