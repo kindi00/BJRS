@@ -242,20 +242,12 @@ class Events(models.Model):
     name = models.CharField(max_length=50, verbose_name="Nazwa", unique=True)
     date = models.DateTimeField(blank=True, null=True, verbose_name="Data/ Data rozpoczęcia")
     end_date = models.DateTimeField(blank=True, null=True, verbose_name="Data zakończenia")
-    no_attendees = models.SmallIntegerField(db_column='no_atendees', verbose_name="Liczba uczestników", validators=[MinValueValidator(0, "Liczba uczestników nie może być mniejsza niż 0")])
     description = models.CharField(max_length=2000, blank=True, null=True, verbose_name="Opis")
     id_event_type = models.ForeignKey(EventTypes, models.CASCADE, db_column='id_event_type', verbose_name="Rodzaj wydarzenia")
 
     class Meta:
         managed = False
         db_table = 'events'
-        constraints = [
-            models.CheckConstraint(
-                name="non_negative_events_no_attendees",
-                check=models.Q(no_attendees__gte=0),
-                violation_error_message="Liczba uczestników nie może być mniejsza niż 0"
-            )
-        ]
 
     def __str__(self) -> str:
         return self.name

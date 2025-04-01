@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from .forms import ModelForm, PersonForm, RoleForm, ProjectForm, UploadFileForm, EventForm, EventTypeForm, CategoriesForm, GroupsForm, ViewFamiliesForm, CoursesForm, SemesterForm, AttendeesForm, AttendeesFormEdit, SemesterFormEdit, ActivityTypesForm, RolesActivityTypesForm, CodesForm, SemesterDatesForm, PeopleSemestersForm, ActivitiesForm, ActivitiesViewForm, ConsentsForm, GrantRoleForm, EditAttendanceFromDate, EditAttendanceFromPerson, PersonPeopleEventsForm, EventPeopleEventsForm, PeopleFilter, FamilyFilter, ActivityFilter, CourseFilter, EventFilter, PersonCourseFilter, PersonActivitiesFilter, CourseSemesterFilter, SemesterDateFilter, CodeFilter, ReportForm
 from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, PeopleRoles, Courses, Semesters, Attendees, SelectAttendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, Attendance, PeopleSemesters, Activities, Consents, PeopleEvents, Genders
 from django.db import connection
-from django.db.models import Q, Model, Value, CharField
+from django.db.models import Q, Model, Value, CharField, Count, Sum
 from django.db.models.functions import Concat
 from csv import DictReader, writer
 from io import TextIOWrapper
@@ -50,6 +50,7 @@ class Link:
 class Button:
     name: str
     href: str
+    # target: str
 
 
 @dataclass
@@ -522,6 +523,7 @@ class BrowseProjectsView(BrowseView):
 
     def _get_buttons(self):
         return [Button("Dodaj projekt", "/add/project")]
+        # return [Button("Dodaj projekt", "addproject")]
 
     def _get_objects(self, query):
         q = query.pop('q') if 'q' in query else ''
@@ -557,7 +559,6 @@ class BrowseEventsView(BrowseView):
         return self.model.objects.filter(
             Q(name__icontains=q) |
             Q(date__icontains=q) |
-            Q(no_attendees__icontains=q) |
             Q(description__icontains=q) |
             Q(id_event_type__name__icontains=q), **kwargs
             )
@@ -1704,10 +1705,11 @@ class EventsAttendeesView(ConcreteBrowseView, NavigationBar):
 
     def get(self, request, fpk):
         obj = Events.objects.get(id=fpk)
+        no_attendees = Events.objects.values('attendees__group__category_id').annotate(no_attendees=Sum('attendees__no_attendees')).order_by('-no_attendees').filter(id=fpk).first()
         attendees = self.group_attendees(SelectAttendees.objects.filter(event=fpk))
         self._activate_nav_item()
         nav_bars = self._set_nav_bars([obj], 2, fpk=fpk)
-        context = {'object': obj, 'attendees': attendees, 'nav_bars': nav_bars}
+        context = {'object': obj, 'attendees': attendees, 'nav_bars': nav_bars, 'no_attendees': no_attendees}
         return render(request, self.template_name, context)
 
     def group_attendees(self, attendees):

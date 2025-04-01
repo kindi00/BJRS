@@ -62,11 +62,9 @@ CREATE TABLE IF NOT EXISTS EVENTS (
     name        VARCHAR(50) UNIQUE NOT NULL,
     date        TIMESTAMP NOT NULL,
     end_date    TIMESTAMP,
-    no_atendees SMALLINT NOT NULL,
     description VARCHAR(2000),
     id_event_type SMALLINT NOT NULL,
-    CONSTRAINT fk_type_id FOREIGN KEY(id_event_type) REFERENCES EVENT_TYPES(id),
-    CONSTRAINT non_negative_no_attendees CHECK (no_atendees >= 0)
+    CONSTRAINT fk_type_id FOREIGN KEY(id_event_type) REFERENCES EVENT_TYPES(id)
 );
 CREATE TABLE IF NOT EXISTS ATENDEES (
     event_id    SMALLINT NOT NULL,
