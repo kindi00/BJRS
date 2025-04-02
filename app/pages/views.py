@@ -270,7 +270,8 @@ class BrowseView(TemplateView, NavigationBar):
     def post(self, request):
         if request.POST.get('actionType') == "bulkDelete":
             ids = request.POST.get('ids').split(',')
-            self.model.objects.filter(id__in=ids).delete()
+            print(ids)
+            # self.model.objects.filter(id__in=ids).delete()
         return self.get(request)
 
 
@@ -410,7 +411,7 @@ class BrowseRolesView(BrowseView):
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/roles/{o.id}/data"),
                                   Link("Zmień nazwę", "btn btn-primary btn-sm", f"/roles/{o.id}/rename"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/roles/{o.id}/delete")])
-                ], onclick=f"/roles/{o.id}/data") for o in objects]
+                ], onclick=f"/roles/{o.id}/data", id=o.id) for o in objects]
 
     def _get_buttons(self):
         return [Button("Dodaj rolę", "/add/role"), Button("Importuj", "/import/roles")]
@@ -439,7 +440,7 @@ class BrowseActivitiesView(BrowseView):
                 DataCell('datetime', o.date),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/delete")])
-                ], onclick=f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/data") for o in objects]
+                ], onclick=f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/data", id=o.id) for o in objects]
 
     def _get_buttons(self):
         return [Button("Dodaj aktywność", "/add_activity")]
@@ -471,7 +472,7 @@ class BrowseActivityTypesView(BrowseView):
                 DataCell('data', o.name),
                 DataCell('link', [Link("Zmień nazwę", "btn btn-info btn-sm", f"/activity_type/{o.id}/rename"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/activity_type/{o.id}/delete")])
-                ]) for o in objects]
+                ], id=o.id) for o in objects]
 
     def _get_buttons(self):
         return [Button("Dodaj rodzaj aktywności", "/add/activity_type")]
@@ -497,7 +498,7 @@ class BrowseCoursesView(BrowseView):
                 DataCell('data', o.description),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/course/{o.id}/semesters"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/course/{o.id}/delete")])
-                ], onclick=f"/course/{o.id}/semesters") for o in objects]
+                ], onclick=f"/course/{o.id}/semesters", id=o.id) for o in objects]
 
     def _get_buttons(self):
         return [Button("Dodaj kurs", "/add/course"),
@@ -524,7 +525,7 @@ class BrowseProjectsView(BrowseView):
                 DataCell('data', o.name),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/projects/{o.id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/projects/{o.id}/delete")])
-                ], onclick=f"/projects/{o.id}/data") for o in objects]
+                ], onclick=f"/projects/{o.id}/data", id=o.id) for o in objects]
 
     def _get_buttons(self):
         return [Button("Dodaj projekt", "/add/project")]
@@ -553,7 +554,7 @@ class BrowseEventsView(BrowseView):
                 DataCell('datetime', o.date),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/events/{o.id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/events/{o.id}/delete")])
-                ], onclick=f"/events/{o.id}/data") for o in objects]
+                ], onclick=f"/events/{o.id}/data", id=o.id) for o in objects]
 
     def _get_buttons(self):
         return [Button("Dodaj wydarzenie", "/add/event")]
@@ -582,7 +583,7 @@ class BrowseEventTypesView(BrowseEventsView):
         return [HTMLRow([
                 DataCell('data', o.name),
                 DataCell('link', [Link("Usuń", "btn btn-danger btn-sm", f"/event_types/{o.id}/delete")])
-                ]) for o in objects]
+                ], id=o.id) for o in objects]
 
     def _get_buttons(self):
         return [Button("Dodaj rodzaj wydarzenia", "/add/event_type")]

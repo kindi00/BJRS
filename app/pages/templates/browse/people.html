@@ -5,6 +5,7 @@
 {% load widget_tweaks %}
 {{ dict|json_script:"dict" }}
 <script>
+    var toggled = [];
     function toggleDisabled(_checked, _ids) {
         for (let i = 0; i < _ids.length; i++) {
             let e = document.getElementById(_ids[i]);
@@ -36,33 +37,54 @@
     }
     function toggleAllCheckboxes(_checked){
         var table = document.getElementById('browse_table');
-        var foo = document.getElementById('foo');
         var n = table.rows.length;
         for (i = 0; i < n; i++) {
             var cell = table.rows[i].cells[0];
             if (cell.id != '#') {
-            var checkbox = cell.getElementsByTagName('input')[0];
-            checkbox.checked = _checked;
+                var checkbox = cell.getElementsByTagName('input')[0];
+                checkbox.checked = _checked;
             }
+        }
+        if (_checked) {
+            toggled.length = 0;
+            document.getElementById('deleteToggled').disabled = false;
+        } else {
+            document.getElementById('deleteToggled').disabled = true;
         }
         document.getElementById('shownCheckboxes').checked = false;
     }
     function deleteChecked(){
         document.getElementById('modal-title').innerHTML = "Usuwanie";
         document.getElementById('modal-body').innerHTML = "Czy na pewno chcesz usunąć wszystkie zaznaczone elementy?";
-        var tab = document.getElementById('browse_table');
-        var n = tab.rows.length;
-        var arr = [];
-        for (i = 1; i < n; i++) {
-            var row = tab.rows[i];
-            if (row.cells[0].getElementsByTagName('input')[0].checked) {
-                arr.push(row.id.slice(4));
-            }
-        }
-        document.getElementById('ids').value = arr;
         document.getElementById('actionType').value = "bulkDelete";
     }
+    function checkSelf(item){
+        var index = toggled.indexOf(item);
+        if (index !== -1) {
+            toggled.splice(index, 1);
+        } else {
+            toggled.push(item);
+        }
+        turnOffButtons();
+    }
+    function turnOffButtons(){
+        var buttons = document.getElementById('bulkButtonGroup').getElementsByTagName('button');
+        if (toggled.length > 0){
+            document.getElementById('allCheckboxes').checked = true;
+            for (i = 0; i < buttons.length; i++) {
+                buttons[0].disabled = false;
+            }
+            document.getElementById('bulkButtonGroup').disabled = false;
+        } else {
+            document.getElementById('allCheckboxes').checked = false;
+            for (i = 0; i < buttons.length; i++) {
+                buttons[0].disabled = true;
+            }
+        }
+    }
 </script>
+
+<body>
 
 <form method="GET" action="">
 <div class="container-fluid p-1">
@@ -127,8 +149,8 @@
         <input type="checkbox" class="btn-check" id="shownCheckboxes" autocomplete="off">
         <label class="btn btn-outline-dark" for="shownCheckboxes">Zaznacz widoczne</label>
     </div>
-    <div class="btn-group" role="group">  
-        <button type="button" class="btn btn-danger" onclick="deleteChecked()" id="deleteToggled"  data-bs-toggle="modal" data-bs-target="#modal">Usuń zaznaczone</button>
+    <div class="btn-group" role="group" id="bulkButtonGroup">  
+        <button type="button" class="btn btn-danger" onclick="deleteChecked()" id="deleteToggled"  data-bs-toggle="modal" data-bs-target="#modal" disabled>Usuń zaznaczone</button>
     </div>
 </div>
 <div class="container p-0 m-0">
@@ -149,8 +171,8 @@
         <tbody class="table-light" id="{{ table.body_name }}">
             {% for field in table.rows %}
             <tr id="row-{{ field.id }}">
-                <td scope="col">
-                    <input type="checkbox" class="form-check-input" value="">
+                <td scope="col" style="width: 2%;">
+                    <input type="checkbox" class="form-check-input" value="" onchange="checkSelf('{{field.id}}')">
                 </td>
                 {% for info in field.fields %}
                 {% if info.type == 'data' %}
@@ -200,7 +222,7 @@
                 </div>
                 <div hidden id="hiddenData">
                     <input type="hidden" name="referer" value="{{request.META.HTTP_REFERER}}" />
-                    <input type="hidden" name="ids" id="ids" value="">
+                    <input type="hidden" name="ids" id="ids" value="{{ id_list }}">
                     <input type="hidden" name="actionType" id="actionType" value="">
                 </div>
             </div>
@@ -211,7 +233,7 @@
 </div>
 </div>
 </div>
-
+</body>
 
 {% endblock content %}
 
