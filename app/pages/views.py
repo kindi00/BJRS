@@ -57,6 +57,7 @@ class Button:
 class HTMLRow:
     fields: list[DataCell]
     onclick: str = '#'
+    id: str = -1
 
 
 @dataclass
@@ -75,7 +76,6 @@ class Filter:
 
 
 def map_is_adult(input: str) -> bool:
-    print(input)
     try:
         return {
             'tak': True,
@@ -136,7 +136,6 @@ class NavigationBar:
         }
         output = self.nav_bars[:first_setable_bar]
         for i, nav_bar in enumerate(self.nav_bars[first_setable_bar:]):
-            print(i, nav_bar)
             data_items = [NavItem(item.name, item.href % tuple([kwargs[d[x]] for x in range(i+1)]), item.isActive) for item in nav_bar]
             output += [[NavItem(instances[i], isDisabled=True)] + data_items]
         return output
@@ -268,6 +267,12 @@ class BrowseView(TemplateView, NavigationBar):
         context = {'objects': objects, 'nav_bars': self.nav_bars, 'tables': [table], 'buttons': buttons, 'q': q, 'filters': filters}
         return render(request, self.template_name, context)
 
+    def post(self, request):
+        if request.POST.get('actionType') == "bulkDelete":
+            ids = request.POST.get('ids').split(',')
+            self.model.objects.filter(id__in=ids).delete()
+        return self.get(request)
+
 
 class ConcreteBrowseView(TemplateView, NavigationBar):
     template_name = "browse/people.html"
@@ -329,7 +334,7 @@ class BrowsePeopleView(BrowseView):
                 DataCell('data', o.country_code),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.id}/delete")])
-                ], onclick=f"/person/{o.id}/data"
+                ], onclick=f"/person/{o.id}/data", id=o.id
         ) for o in objects]
 
     def _get_buttons(self):
