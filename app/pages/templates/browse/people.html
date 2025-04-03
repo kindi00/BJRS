@@ -43,12 +43,13 @@
             if (cell.id != '#') {
                 var checkbox = cell.getElementsByTagName('input')[0];
                 checkbox.checked = _checked;
+                updateToggled(checkbox.value);
             }
         }
         if (_checked) {
-            toggled.length = 0;
             document.getElementById('deleteToggled').disabled = false;
         } else {
+            toggled = [];
             document.getElementById('deleteToggled').disabled = true;
         }
         document.getElementById('shownCheckboxes').checked = false;
@@ -57,14 +58,10 @@
         document.getElementById('modal-title').innerHTML = "Usuwanie";
         document.getElementById('modal-body').innerHTML = "Czy na pewno chcesz usunąć wszystkie zaznaczone elementy?";
         document.getElementById('actionType').value = "bulkDelete";
+        document.getElementById('ids').value = toggled;
     }
     function checkSelf(item){
-        var index = toggled.indexOf(item);
-        if (index !== -1) {
-            toggled.splice(index, 1);
-        } else {
-            toggled.push(item);
-        }
+        updateToggled(item);
         turnOffButtons();
     }
     function turnOffButtons(){
@@ -80,6 +77,14 @@
             for (i = 0; i < buttons.length; i++) {
                 buttons[0].disabled = true;
             }
+        }
+    }
+    function updateToggled(item){
+        var index = toggled.indexOf(item);
+        if (index !== -1) {
+            toggled.splice(index, 1);
+        } else {
+            toggled.push(item);
         }
     }
 </script>
@@ -172,7 +177,7 @@
             {% for field in table.rows %}
             <tr id="row-{{ field.id }}">
                 <td scope="col" style="width: 2%;">
-                    <input type="checkbox" class="form-check-input" value="" onchange="checkSelf('{{field.id}}')">
+                    <input type="checkbox" class="form-check-input" value="{{field.id}}" onchange="checkSelf('{{field.id}}')">
                 </td>
                 {% for info in field.fields %}
                 {% if info.type == 'data' %}
