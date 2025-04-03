@@ -253,12 +253,12 @@ class BrowseView(TemplateView, NavigationBar):
     def _get_buttons(self):
         ...
 
-    def _get_objects(self, query):
+    def _get_objects(self, query, **kwargs):
         ...
 
-    def get(self, request):
+    def get(self, request, **kwargs):
         filters = self.filter_form(initial={k: v for k, v in request.GET.dict().items() if k != 'q'}) if self.filter_form is not None else None
-        objects = self._get_objects(request.GET.dict())
+        objects = self._get_objects(request.GET.dict(), **kwargs)
         q = request.GET.get('q') if request.GET.get('q') is not None else ''
         self._activate_nav_item()
         fields = self._get_fields(objects)
@@ -350,7 +350,7 @@ class BrowsePeopleView(BrowseView):
     def _get_buttons(self):
         return [Button("Dodaj osobę", "/add/person"), Button("Importuj", "/import/people")]
 
-    def _get_objects(self, query):
+    def _get_objects(self, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
         kwargs = format_filter_query(query)
         if 'gender__icontains' in kwargs.keys():
@@ -394,7 +394,7 @@ class BrowseFamiliesView(BrowseView):
     def _get_buttons(self):
         return [Button("Dodaj rodzinę", "/add/family")]
 
-    def _get_objects(self, query):
+    def _get_objects(self, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
         kwargs = format_filter_query(query)
         return self.model.objects.annotate(
@@ -425,7 +425,7 @@ class BrowseRolesView(BrowseView):
     def _get_buttons(self):
         return [Button("Dodaj rolę", "/add/role"), Button("Importuj", "/import/roles")]
 
-    def _get_objects(self, query):
+    def _get_objects(self, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
         return self.model.objects.filter(role_name__icontains=q)
 
@@ -454,7 +454,7 @@ class BrowseActivitiesView(BrowseView):
     def _get_buttons(self):
         return [Button("Dodaj aktywność", "/add_activity")]
 
-    def _get_objects(self, query):
+    def _get_objects(self, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
         kwargs = format_filter_query(query)
         return self.model.objects.annotate(full_name=Concat('person_id__name', Value(' '), 'person_id__surname', Value(' '), 'person_id__pcode', output_field=CharField())).filter(
@@ -486,7 +486,7 @@ class BrowseActivityTypesView(BrowseView):
     def _get_buttons(self):
         return [Button("Dodaj rodzaj aktywności", "/add/activity_type")]
 
-    def _get_objects(self, query):
+    def _get_objects(self, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
         return self.model.objects.filter(name__icontains=q)
 
@@ -515,7 +515,7 @@ class BrowseCoursesView(BrowseView):
                 Button("Importuj kursy i semestry", "/import/semesters"),
                 Button("Importuj zapisane osoby", "/import/people_semesters")]
 
-    def _get_objects(self, query):
+    def _get_objects(self, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
         kwargs = format_filter_query(query)
         return self.model.objects.filter(Q(name__icontains=q), **kwargs)
@@ -540,7 +540,7 @@ class BrowseProjectsView(BrowseView):
         return [Button("Dodaj projekt", "/add/project")]
         # return [Button("Dodaj projekt", "addproject")]
 
-    def _get_objects(self, query):
+    def _get_objects(self, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
         kwargs = format_filter_query(query)
         return self.model.objects.filter(Q(name__icontains=q) | Q(description__icontains=q), **kwargs)
@@ -568,7 +568,7 @@ class BrowseEventsView(BrowseView):
     def _get_buttons(self):
         return [Button("Dodaj wydarzenie", "/add/event")]
 
-    def _get_objects(self, query):
+    def _get_objects(self, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
         kwargs = format_filter_query(query)
         return self.model.objects.filter(
@@ -597,7 +597,7 @@ class BrowseEventTypesView(BrowseEventsView):
     def _get_buttons(self):
         return [Button("Dodaj rodzaj wydarzenia", "/add/event_type")]
 
-    def _get_objects(self, query):
+    def _get_objects(self, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
         return self.model.objects.filter(name__icontains=q)
 
@@ -1045,7 +1045,7 @@ class RoleDataView(ConcreteBrowseView):
                 ], onclick=f"/person/{o.id}/data", id=o.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
-        return [Button("Daj rolę osobie", f"/roles/{kwargs['fpk']}/grant_role")]
+        return [Button("Daj rolę osobie", f"/roles/{kwargs['fpk']}/grant_role"), Button("Daj rolę wielu osobom", f"/roles/{kwargs['fpk']}/bulk_add")]
 
     def _get_objects(self, instance, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
@@ -1059,6 +1059,88 @@ class RoleDataView(ConcreteBrowseView):
 
     def _get_MtM_instances(self, ids, **kwargs):
         return PeopleRoles.objects.filter(rid=kwargs['fpk'], pid__in=ids)
+
+
+class RoleBulkAddView(ConcreteBrowseView):
+    model = People
+    active_nav_items = ["Role", "Osoby z rolą"]
+    header_cells = [
+        HeaderCell("Imię i Nazwisko", 0, "th0", True),
+        HeaderCell("Telefon", 1, "th1", True),
+        HeaderCell("Mail", 2, "th2", True),
+        HeaderCell("Kraj pochodzenia", 3, "th3", True),
+        HeaderCell("Opcje", None, None, False)
+    ]
+    filter_form = PeopleFilter
+    nav_bars = [BROWSE_NAV_ITEMS, ROLES_NAV_ITEMS]
+    first_setable_bar = 1
+
+    def _get_fields(self, objects):
+        return [HTMLRow(
+            [
+                DataCell('data', o),
+                DataCell('data', o.phone_nr),
+                DataCell('data', o.mail),
+                DataCell('data', o.country_code),
+                DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.id}/data"),
+                                  Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.id}/delete")])
+                ], onclick=f"/person/{o.id}/data", id=o.id
+        ) for o in objects]
+
+    def _get_buttons(self):
+        return []
+
+    def _get_objects(self, query, **kwargs):
+        rid = kwargs['fpk']
+        q = query.pop('q') if 'q' in query else ''
+        kwargs = format_filter_query(query)
+        if 'gender__icontains' in kwargs.keys():
+            kwargs['gender'] = kwargs.pop('gender__icontains')
+        return self.model.objects.annotate(full_name=Concat('name', Value(' '), 'surname', Value(' '), 'pcode', output_field=CharField())).filter(
+            (Q(mail__isnull=True) & (Q(full_name=q) |
+                                     Q(phone_nr__icontains=q) |
+                                     Q(country_code__icontains=q) |
+                                     Q(is_adult__icontains=q) |
+                                     Q(gender__name__icontains=q) |
+                                     Q(description__icontains=q) |
+                                     Q(notes__icontains=q))) |
+            Q(full_name__icontains=q) |
+            Q(phone_nr__icontains=q) |
+            Q(country_code__icontains=q) |
+            Q(is_adult__icontains=q) |
+            Q(gender__name__icontains=q) |
+            (Q(mail__isnull=False) & Q(mail__icontains=q)) |
+            Q(description__icontains=q) |
+            Q(notes__icontains=q), **kwargs
+            ).exclude(roles__id=rid)
+
+    def _get_bulk_buttons(self):
+        return {'bulkDelete': False, 'bulkAdd': True}
+
+    def get(self, request, **kwargs):
+        filters = self.filter_form(initial={k: v for k, v in request.GET.dict().items() if k != 'q'}) if self.filter_form is not None else None
+        objects = self._get_objects(request.GET.dict(), **kwargs)
+        q = request.GET.get('q') if request.GET.get('q') is not None else ''
+        self._activate_nav_item()
+        self.nav_bars = self._set_nav_bars([Roles.objects.get(id=kwargs['fpk'])], self.first_setable_bar, **kwargs)
+        fields = self._get_fields(objects)
+        buttons = self._get_buttons()
+        bulk_buttons = self._get_bulk_buttons()
+        table = HTMLTable(header_cells=self.header_cells, rows=fields, body_name='tbody')
+        context = {'objects': objects, 'nav_bars': self.nav_bars, 'tables': [table], 'buttons': buttons, 'q': q, 'filters': filters, 'bulkButtons': bulk_buttons}
+        return render(request, self.template_name, context)
+
+    def post(self, request, **kwargs):
+        if request.POST.get('actionType') == "bulkAdd":
+            ids = request.POST.get('ids').split(',')
+            people = [
+                PeopleRoles(
+                    rid=Roles.objects.get(id=kwargs['fpk']),
+                    pid=People.objects.get(id=id)
+                ) for id in ids
+            ]
+            PeopleRoles.objects.bulk_create(people)
+        return redirect(request.POST.get('referer'))
 
 
 class RoleBrowseView(ConcreteBrowseView):

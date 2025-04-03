@@ -61,6 +61,12 @@
         document.getElementById('actionType').value = "bulkDelete";
         document.getElementById('ids').value = toggled;
     }
+    function addChecked(){
+        document.getElementById('modal-title').innerHTML = "Dodawanie";
+        document.getElementById('modal-body').innerHTML = "Czy na pewno chcesz dodać wszystkie zaznaczone elementy?";
+        document.getElementById('actionType').value = "bulkAdd";
+        document.getElementById('ids').value = toggled;
+    }
     function checkSelf(item){
         updateToggled(item);
         turnOffButtons();
@@ -154,8 +160,13 @@
         <input type="checkbox" class="btn-check" id="shownCheckboxes" autocomplete="off">
         <label class="btn btn-outline-dark" for="shownCheckboxes">Zaznacz widoczne</label>
     </div>
-    <div class="btn-group" role="group" id="bulkButtonGroup">  
+    <div class="btn-group" role="group" id="bulkButtonGroup">
+        {% if bulkButtons.bulkDelete or bulkButtons == None %}
         <button type="button" class="btn btn-danger" onclick="deleteChecked()" id="deleteToggled"  data-bs-toggle="modal" data-bs-target="#modal" disabled>Usuń zaznaczone</button>
+        {% endif %}
+        {% if bulkButtons.bulkAdd %}
+        <button type="button" class="btn btn-primary" onclick="addChecked()" id="addToggled"  data-bs-toggle="modal" data-bs-target="#modal" disabled>Dodaj zaznaczone</button>
+        {% endif %}
     </div>
 </div>
 <div class="container p-0 m-0">
@@ -163,7 +174,7 @@
         {% for table in tables %}
         <thead class="table-light">
             <tr class="table-info">
-                <th scope="col" id="#"> </th>
+                <th scope="col" id="#" style="width: 2%;"></th>
                 {% for cell in table.header_cells %}
                 {% if cell.isSortable %}
                 <th onclick="sortTable('{{cell.index}}', '{{table.body_name}}', '{{cell.id}}')" scope="col">{{cell.name}}<a id="{{cell.id}}"></a></th>
@@ -229,7 +240,7 @@
                 </div>
                 <div class="modal-footer" id="modal-footer">
                     <div class="form-group">
-                        <input class="btn btn-primary" type="submit" value="Tak" />
+                        <input class="btn btn-primary" type="submit" value="Tak" id="confirmButton"/>
                         <a class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#modal">Anuluj</a>
                     </div>
                 </div>

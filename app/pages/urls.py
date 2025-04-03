@@ -44,6 +44,7 @@ urlpatterns = [
     path("person/<str:fpk>/events", login_required(views.PersonEventsView.as_view(), login_url='/'), name="person_events"),
     path("person/<str:fpk>/add_to_event", login_required(views.PersonAddToEventView.as_view(), login_url='/'), name="person_add_to_event"),
     path("roles/<str:fpk>/data", login_required(views.RoleDataView.as_view(), login_url='/'), name="role_data"),
+    path("roles/<str:fpk>/bulk_add", login_required(views.RoleBulkAddView.as_view(), login_url='/'), name="role_bulk_add"),
     path("roles/<str:fpk>/rename", login_required(views.get_concrete_EditDataView("person/main.html", models.Roles, forms.RoleForm, ["Role"], [views.BROWSE_NAV_ITEMS]).as_view(), login_url='/'), name="role_rename"),
     path("roles/<str:fpk>/browse", login_required(views.RoleBrowseView.as_view(), login_url='/'), name="role_browse"),
     path("roles/<str:fpk>/grant_role", login_required(views.get_concrete_AddMulPKView({'fpk': 'rid'}, "Daj rolę osobie", forms.GrantRoleForm, models.Roles, [views.BROWSE_NAV_ITEMS, views.ROLES_NAV_ITEMS], ["Role", "Osoby z rolą"]).as_view(), login_url='/'), name="role_grant"),
