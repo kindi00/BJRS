@@ -296,6 +296,9 @@ class ConcreteBrowseView(TemplateView, NavigationBar):
     def _get_instances(self, **kwargs):
         ...
 
+    def _get_MtM_instances(self, ids, **kwargs):
+        ...
+
     def _get_tables(self, instances, query, **kwargs):
         objects = self._get_objects(instances[-1], query=query, **kwargs)
         fields = self._get_fields(objects, **kwargs)
@@ -312,6 +315,12 @@ class ConcreteBrowseView(TemplateView, NavigationBar):
         filters = self.filter_form(initial=query) if self.filter_form is not None else None
         context = {'nav_bars': nav_bars, 'buttons': buttons, 'tables': tables, 'q': q, 'filters': filters}
         return render(request, self.template_name, context)
+
+    def post(self, request, **kwargs):
+        if request.POST.get('actionType') == "bulkDelete":
+            ids = request.POST.get('ids').split(',')
+            self._get_MtM_instances(ids, **kwargs).delete()
+        return self.get(request, **kwargs)
 
 
 class BrowsePeopleView(BrowseView):
@@ -1033,7 +1042,7 @@ class RoleDataView(ConcreteBrowseView):
                 DataCell('data', o),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.id}/role/{kwargs['fpk']}/delete")])
-                ], onclick=f"/person/{o.id}/data") for o in objects]
+                ], onclick=f"/person/{o.id}/data", id=o.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Daj rolę osobie", f"/roles/{kwargs['fpk']}/grant_role")]
@@ -1048,6 +1057,9 @@ class RoleDataView(ConcreteBrowseView):
     def _get_instances(self, **kwargs):
         return [Roles.objects.get(id=kwargs['fpk'])]
 
+    def _get_MtM_instances(self, ids, **kwargs):
+        return PeopleRoles.objects.filter(rid=kwargs['fpk'], pid__in=ids)
+
 
 class RoleBrowseView(ConcreteBrowseView):
     active_nav_items = ["Role", "Dozwolone aktywności"]
@@ -1061,7 +1073,7 @@ class RoleBrowseView(ConcreteBrowseView):
         return [HTMLRow([
                 DataCell('data', o.atid.name),
                 DataCell('link', [Link("Usuń", "btn btn-danger btn-sm", f"/roles/{kwargs['fpk']}/activity_type/{o.atid.id}/delete")])
-                ]) for o in objects]
+                ], id=o.atid.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Dodaj dozwolony rodzaj aktywności", f"/roles/{kwargs['fpk']}/activity_type/add")]
@@ -1072,6 +1084,9 @@ class RoleBrowseView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [Roles.objects.get(id=kwargs['fpk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        return RolesActivityTypes.objects.filter(rid=kwargs['fpk'], atid__in=ids)
 
 
 class PersonRolesView(ConcreteBrowseView):
@@ -1087,7 +1102,7 @@ class PersonRolesView(ConcreteBrowseView):
                 DataCell('data', o.role_name),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/roles/{o.id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{kwargs['fpk']}/role/{o.id}/delete")])
-                ], onclick=f"/roles/{o.id}/data") for o in objects]
+                ], onclick=f"/roles/{o.id}/data", id=o.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Daj rolę", f"/person/{kwargs['fpk']}/grant_role")]
@@ -1098,6 +1113,9 @@ class PersonRolesView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [People.objects.get(id=kwargs['fpk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        return PeopleRoles.objects.filter(pid=kwargs['fpk'], rid__in=ids)
 
 
 class PersonGrantRoleView(AddMulPKView):
@@ -1147,7 +1165,7 @@ class PersonCoursesView(ConcreteBrowseView):
                 DataCell('link', [Link("Zobacz kurs", "btn btn-info btn-sm", f"/course/{o.course_id.id}/semester/{o.semester_id.id}/dates"),
                                   Link("Zobacz obecności", "btn btn-info btn-sm", f"/person/{kwargs['fpk']}/course/{o.course_id.id}/semester/{o.semester_id.id}/attendance"),
                                   Link("Wypisz", "btn btn-danger btn-sm", f"/course/{o.course_id.id}/semester/{o.semester_id.id}/person/{kwargs['fpk']}/delete_attendance")])
-                ], onclick=f"/course/{o.course_id.id}/semester/{o.semester_id.id}/dates") for o in objects]
+                ], onclick=f"/course/{o.course_id.id}/semester/{o.semester_id.id}/dates", id=[o.course_id.id, o.semester_id.id]) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Zapisz na kurs", f"/person/{kwargs['fpk']}/add_to_course")]
@@ -1162,6 +1180,10 @@ class PersonCoursesView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [People.objects.get(id=kwargs['fpk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        ids = [id.replace('[', '').replace(']', '') for id in ids]
+        return PeopleSemesters.objects.filter(person_id=kwargs['fpk'], course_id__id__in=ids[::2], semester_id__id__in=ids[1::2])
 
 
 class PersonEventsView(ConcreteBrowseView):
@@ -1180,7 +1202,7 @@ class PersonEventsView(ConcreteBrowseView):
                 DataCell('link', [Link("Zobacz wydarzenie", "btn btn-info btn-sm", f"/events/{o.event_id.id}/attendance"),
                                   # Link("Zobacz obecności", "btn btn-info btn-sm", f"/person/{kwargs['fpk']}/course/{o.course_id.id}/semester/{o.semester_id.id}/attendance"),
                                   Link("Wypisz", "btn btn-danger btn-sm", f"/events/{o.event_id.id}/person/{o.person_id.id}/delete_attendance")])
-                ], onclick=f"/events/{o.event_id.id}/attendance") for o in objects]
+                ], onclick=f"/events/{o.event_id.id}/attendance", id=o.event_id.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Zapisz na wydarzenie", f"/person/{kwargs['fpk']}/add_to_event")]
@@ -1195,20 +1217,28 @@ class PersonEventsView(ConcreteBrowseView):
     def _get_instances(self, **kwargs):
         return [People.objects.get(id=kwargs['fpk'])]
 
+    def _get_MtM_instances(self, ids, **kwargs):
+        return PeopleEvents.objects.filter(person_id=kwargs['fpk'], event_id__in=ids)
+
 
 class PersonAttendanceView(ConcreteBrowseView):
+    # TODO nie działa!!!!
     active_nav_items = ["Osoby", "Kursy Językowe", ""]
     nav_bars = [BROWSE_NAV_ITEMS, PERSON_NAV_ITEMS, []]
     header_cells = [
-        HeaderCell("Termin", 0, "th0", True),
-        HeaderCell("Obecność", 1, "th1", True)
+        HeaderCell("Data", 0, "th0", True),
+        HeaderCell("Od", None, None, False),
+        HeaderCell("Do", None, None, False),
+        HeaderCell("Obecność", 3, "th3", True)
     ]
 
     def _get_fields(self, objects, **kwargs):
         return [HTMLRow([
-                DataCell('datetime', o.date_id.date),
+                DataCell('date', o.date_id.date),
+                DataCell('time', o.date_id.start_time),
+                DataCell('time', o.date_id.end_time),
                 DataCell('data', o.attendance_type)
-                ]) for o in objects]
+                ], id=o.date_id.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Edytuj", f"/person/{kwargs['fpk']}/course/{kwargs['spk']}/semester/{kwargs['tpk']}/attendance/edit")]
@@ -1219,6 +1249,9 @@ class PersonAttendanceView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [People.objects.get(id=kwargs['fpk']), Courses.objects.get(id=kwargs['spk']), Semesters.objects.get(course_id=kwargs['spk'], id=kwargs['tpk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        return Attendance.objects.filter(person_id=kwargs['fpk'], course_id=kwargs['spk'], semester_id=kwargs['tpk'], date_id__id__in=ids)
 
 
 class PersonAttendanceEditView(TemplateView, NavigationBar):
@@ -1261,7 +1294,7 @@ class PersonActivitiesView(ConcreteBrowseView):
                 DataCell('datetime', o.date),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/delete")])
-                ], onclick=f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/data") for o in objects]
+                ], onclick=f"/person/{o.person_id.id}/activity_type/{o.activity_type_id.id}/activity/{o.activity_id}/data", id=[o.activity_id, o.activity_type_id.id]) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Dodaj aktywność", f"/person/{kwargs['fpk']}/add_activity")]
@@ -1273,6 +1306,10 @@ class PersonActivitiesView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [People.objects.get(id=kwargs['fpk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        ids = [id.replace('[', '').replace(']', '') for id in ids]
+        return Activities.objects.filter(person_id=kwargs['fpk'], activity_id__in=ids[::2], activity_type_id__id__in=ids[1::2])
 
 
 class PersonConsentsView(ConcreteBrowseView):
@@ -1288,7 +1325,7 @@ class PersonConsentsView(ConcreteBrowseView):
                 DataCell('data', o.activity_type_id.name),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.person_id.id}/consent/{o.consent_id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.person_id.id}/consent/{o.consent_id}/delete")])
-                ], onclick=f"/person/{o.person_id.id}/consent/{o.consent_id}/data") for o in objects]
+                ], onclick=f"/person/{o.person_id.id}/consent/{o.consent_id}/data", id=o.consent_id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Dodaj zgodę", f"/person/{kwargs['fpk']}/add_consent")]
@@ -1300,6 +1337,9 @@ class PersonConsentsView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [People.objects.get(id=kwargs['fpk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        return Consents.objects.filter(person_id=kwargs['fpk'], consent_id__in=ids)
 
 
 class PersonFamilyView(ConcreteBrowseView):
@@ -1332,14 +1372,18 @@ class PersonFamilyView(ConcreteBrowseView):
                 DataCell('data', o),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.id}/family/{person.id}/delete")])
-                ], onclick=f"/person/{o.id}/data") for o in parents]
+                ], onclick=f"/person/{o.id}/data", id=[o.id, person.id]) for o in parents]
         c_fields = [HTMLRow([
                 DataCell('data', o),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.id}/data"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/person/{person.id}/family/{o.id}/delete")])
-                ], onclick=f"/person/{o.id}/data") for o in children]
+                ], onclick=f"/person/{o.id}/data", id=[person.id, o.id]) for o in children]
         return [HTMLTable(header_cells=self.parents_header_cells, rows=p_fields, body_name="parents_tbody"),
                 HTMLTable(header_cells=self.children_header_cells, rows=c_fields, body_name="children_tbody")]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        ids = [id.replace('[', '').replace(']', '') for id in ids]
+        return ViewFamilies.objects.filter(pid_parent__in=ids[::2], pid_child__in=ids[1::2])
 
 
 class CoursesSemestersView(ConcreteBrowseView):
@@ -1358,7 +1402,7 @@ class CoursesSemestersView(ConcreteBrowseView):
                 DataCell('data', o.description),
                 DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/course/{kwargs['fpk']}/semester/{o.id}/dates"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/course/{kwargs['fpk']}/semester/{o.id}/delete")])
-                ], onclick=f"/course/{kwargs['fpk']}/semester/{o.id}/dates") for o in objects]
+                ], onclick=f"/course/{kwargs['fpk']}/semester/{o.id}/dates", id=o.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Dodaj semestr", f"/course/{kwargs['fpk']}/add/semester")]
@@ -1370,6 +1414,9 @@ class CoursesSemestersView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [Courses.objects.get(id=kwargs['fpk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        return Semesters.objects.filter(course_id=kwargs['fpk'], id__in=ids)
 
 
 class DataView(TemplateView, NavigationBar):
@@ -1745,7 +1792,7 @@ class SemestersDatesView(ConcreteBrowseView):
                 DataCell('time', o.end_time),
                 DataCell('link', [Link("Zobacz obecności", "btn btn-info btn-sm", f"/course/{o.course_id.id}/semester/{o.semester_id.id}/dates/{o.date_id}"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/course/{o.course_id.id}/semester/{o.semester_id.id}/dates/{o.date_id}/delete")])
-                ], onclick=f"/course/{o.course_id.id}/semester/{o.semester_id.id}/dates/{o.date_id}") for o in objects]
+                ], onclick=f"/course/{o.course_id.id}/semester/{o.semester_id.id}/dates/{o.date_id}", id=o.date_id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Dodaj datę", f"/course/{kwargs['fpk']}/semester/{kwargs['spk']}/add_date")]
@@ -1757,6 +1804,9 @@ class SemestersDatesView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [Courses.objects.get(id=kwargs['fpk']), Semesters.objects.get(course_id=kwargs['fpk'], id=kwargs['spk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        return SemesterDates.objects.filter(course_id=kwargs['fpk'], semester_id=kwargs['spk'], date_id__in=ids)
 
 
 class SemestersDataEditView(TemplateView, NavigationBar):
@@ -1797,7 +1847,7 @@ class SemestersAttendeesView(ConcreteBrowseView):
                 DataCell('link', [Link("Zobacz uczestnika", "btn btn-info btn-sm", f"/person/{o.person_id.id}/data"),
                                   # TODO Zobacz obecności Link("Zobacz obecności", "btn btn-info btn-sm", f"/person/{o.person_id.id}/data"),
                                   Link("Wypisz", "btn btn-danger btn-sm", f"/course/{kwargs['fpk']}/semester/{kwargs['spk']}/person/{o.person_id.id}/delete_attendance")])
-                ], onclick=f"/person/{o.person_id.id}/data") for o in objects]
+                ], onclick=f"/person/{o.person_id.id}/data", id=o.person_id.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Dodaj Uczestnika", f"/course/{kwargs['fpk']}/semester/{kwargs['spk']}/add_attendee")]
@@ -1813,6 +1863,9 @@ class SemestersAttendeesView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [Courses.objects.get(id=kwargs['fpk']), Semesters.objects.get(course_id=kwargs['fpk'], id=kwargs['spk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        return PeopleSemesters.objects.filter(course_id=kwargs['fpk'], semester_id=kwargs['spk'], person_id__id__in=ids)
 
 
 class EventsAttendanceView(ConcreteBrowseView):
@@ -1832,7 +1885,7 @@ class EventsAttendanceView(ConcreteBrowseView):
                 DataCell('link', [Link("Zobacz uczestnika", "btn btn-info btn-sm", f"/person/{o.person_id.id}/data"),
                                   # TODO Zobacz obecności Link("Zobacz obecności", "btn btn-info btn-sm", f"/person/{o.person_id.id}/data"),
                                   Link("Wypisz", "btn btn-danger btn-sm", f"/events/{o.event_id.id}/person/{o.person_id.id}/delete_attendance")])
-                ], onclick=f"/person/{o.person_id.id}/data") for o in objects]
+                ], onclick=f"/person/{o.person_id.id}/data", id=o.person_id.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Dodaj uczestnika", f"/events/{kwargs['fpk']}/add_attendee"),
@@ -1849,6 +1902,9 @@ class EventsAttendanceView(ConcreteBrowseView):
         q_surname = q_args[1] if len(q_args) > 1 else ''
         q_pcode = q_args[2] if len(q_args) > 2 else ''
         return PeopleEvents.objects.filter(Q(event_id=kwargs['fpk'], person_id__name__icontains=q_name, person_id__surname__icontains=q_surname, person_id__pcode__icontains=q_pcode), **kw)
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        return PeopleEvents.objects.filter(event_id=kwargs['fpk'], person_id__id__in=ids)
 
 
 class EventsEditAttendanceView(TemplateView, NavigationBar):
@@ -1904,7 +1960,7 @@ class ProjectsCodesView(ConcreteBrowseView):
                 DataCell('data', o.name),
                 DataCell('link', [Link("Edytuj", "btn btn-info btn-sm", f"/projects/{kwargs['fpk']}/codes/{o.cid}/edit"),
                                   Link("Usuń", "btn btn-danger btn-sm", f"/projects/{kwargs['fpk']}/codes/{o.cid}/delete")])
-                ]) for o in objects]
+                ], id=o.cid) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Dodaj kod", f"/projects/{kwargs['fpk']}/add_code")]
@@ -1932,6 +1988,9 @@ class ProjectsCodesView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [Projects.objects.get(id=kwargs['fpk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        return Codes.objects.filter(project_id=kwargs['fpk'], cid__in=ids)
 
 
 class CodesDataEditView(TemplateView, NavigationBar):
@@ -1972,7 +2031,7 @@ class BrowseSemesterDatesView(ConcreteBrowseView):
         return [HTMLRow([
                 DataCell('data', o.person_id),
                 DataCell('data', o.attendance_type)
-                ]) for o in objects]
+                ], id=o.person_id.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
         return [Button("Edytuj", f"/course/{kwargs['fpk']}/semester/{kwargs['spk']}/dates/{kwargs['tpk']}/edit")]
@@ -1984,6 +2043,9 @@ class BrowseSemesterDatesView(ConcreteBrowseView):
 
     def _get_instances(self, **kwargs):
         return [Courses.objects.get(id=kwargs['fpk']), Semesters.objects.get(course_id=kwargs['fpk'], id=kwargs['spk']), SemesterDates.objects.get(course_id=kwargs['fpk'], semester_id=kwargs['spk'], date_id=kwargs['tpk'])]
+
+    def _get_MtM_instances(self, ids, **kwargs):
+        return Attendance.objects.filter(course_id=kwargs['fpk'], semester_id=kwargs['spk'], date_id=kwargs['tpk'], person_id__id__in=ids)
 
 
 class EditAttendanceView(TemplateView, NavigationBar):

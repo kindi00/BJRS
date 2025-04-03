@@ -1,3 +1,4 @@
+<!-- templates/browse/people.html -->
 {% extends "browse/main.html" %}
 
 {% block content %}
@@ -92,61 +93,60 @@
 <body>
 
 <form method="GET" action="">
-<div class="container-fluid p-1">
-<div class="row">
-{% if filters %}
-    <div class="col-2">
-        <div class="container p-1">
-        <h4><p id="foo">Filtruj</p></h4>
-        </div>
-        <div class="container p-1">
-            {% for field in filters %}
-                <div class="form-group">
-                {% if field.field.widget.input_type != "checkbox" or field.field.widget.allow_multiple_selected %}
-                    {{ field.label_tag }}
-                {% endif %}
-                
-                {% if field.field.widget.input_type == "checkbox" %}
-                    {% if not field.field.widget.allow_multiple_selected %}
-                        {% render_field field class="form-check-input" %}
-                        <label class="form-check-label" for="checkbox">
-                            {{ field.label }}
-                        </label>
-                    {% else %}
-                        {% render_field field class="" %}
-                    {% endif %}                  
-                {% else %}
-                    {% render_field field class="form-control" %}
-                {% endif %}
-
-                {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
+    <div class="container-fluid p-1">
+        <div class="row">
+        {% if filters %}
+            <div class="col-2">
+                <div class="container p-1">
+                    <h4><p id="foo">Filtruj</p></h4>
                 </div>
-            {% endfor %}
-        </div>
-        <div class="container p-1">
-            <input data-mdb-button-init data-mdb-ripple-init class="btn btn-primary" type="submit" id="search-btn" data-mdb-ripple-color="dark" value="Szukaj">
-        </div>
-        </form> 
-    </div>
-{% endif %}
-<div class="col">
-        <div class="container d-flex justify-content-center">
-            <div class="input-group w-auto p-1">
-                <input
-                  name="q"
-                  id="q"
-                  type="text"
-                  class="form-control"
-                  placeholder="Wyszukaj..."
-                  aria-label="Wyszukaj..."
-                  aria-describedby="search-btn"
-                  value="{{q}}"
-                />
-                <input data-mdb-button-init data-mdb-ripple-init class="btn btn-primary" type="submit" id="search-btn" data-mdb-ripple-color="dark" value="Szukaj">
+                <div class="container p-1">
+                    {% for field in filters %}
+                    <div class="form-group">
+                    {% if field.field.widget.input_type != "checkbox" or field.field.widget.allow_multiple_selected %}
+                        {{ field.label_tag }}
+                    {% endif %}
+                    
+                    {% if field.field.widget.input_type == "checkbox" %}
+                        {% if not field.field.widget.allow_multiple_selected %}
+                            {% render_field field class="form-check-input" %}
+                            <label class="form-check-label" for="checkbox">
+                                {{ field.label }}
+                            </label>
+                        {% else %}
+                            {% render_field field class="" %}
+                        {% endif %}                  
+                    {% else %}
+                        {% render_field field class="form-control" %}
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="container p-1">
+                    <input data-mdb-button-init data-mdb-ripple-init class="btn btn-primary" type="submit" id="search-btn" data-mdb-ripple-color="dark" value="Szukaj">
+                </div>
             </div>
-        </div>
+    {% endif %}
+            <div class="col">
+                <div class="container d-flex justify-content-center">
+                    <div class="input-group w-auto p-1">
+                        <input
+                        name="q"
+                        id="q"
+                        type="text"
+                        class="form-control"
+                        placeholder="Wyszukaj..."
+                        aria-label="Wyszukaj..."
+                        aria-describedby="search-btn"
+                        value="{{q}}"
+                        />
+                        <input data-mdb-button-init data-mdb-ripple-init class="btn btn-primary" type="submit" id="search-btn" data-mdb-ripple-color="dark" value="Szukaj">
+                    </div>
+                </div>
 <div class="container p-0 ms-0 mb-1">
     <div class="btn-group" role="group">
         <input type="checkbox" class="btn-check" id="allCheckboxes" autocomplete="off" onchange="toggleAllCheckboxes(this.checked)">
@@ -207,9 +207,17 @@
 {% endfor %}
 
 
-<form method="POST" action="">
-    {% csrf_token %}
-    <div class="modal fade" id="modal" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
+
+
+</div>
+</div>
+</div>
+
+</form>
+
+<div class="modal fade" id="modal" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
+    <form method="POST" action="">
+        {% csrf_token %}
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -232,12 +240,9 @@
                 </div>
             </div>
         </div>
-    </div>
-</form>
+    </form>
+</div>
 
-</div>
-</div>
-</div>
 </body>
 
 {% endblock content %}
