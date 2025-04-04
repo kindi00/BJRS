@@ -1061,9 +1061,8 @@ class RoleDataView(ConcreteBrowseView):
         return PeopleRoles.objects.filter(rid=kwargs['fpk'], pid__in=ids)
 
 
-class RoleBulkAddView(ConcreteBrowseView):
+class BulkAddView(ConcreteBrowseView):
     model = People
-    active_nav_items = ["Role", "Osoby z rolą"]
     header_cells = [
         HeaderCell("Imię i Nazwisko", 0, "th0", True),
         HeaderCell("Telefon", 1, "th1", True),
@@ -1072,7 +1071,6 @@ class RoleBulkAddView(ConcreteBrowseView):
         HeaderCell("Opcje", None, None, False)
     ]
     filter_form = PeopleFilter
-    nav_bars = [BROWSE_NAV_ITEMS, ROLES_NAV_ITEMS]
     first_setable_bar = 1
 
     def _get_fields(self, objects):
@@ -1082,16 +1080,18 @@ class RoleBulkAddView(ConcreteBrowseView):
                 DataCell('data', o.phone_nr),
                 DataCell('data', o.mail),
                 DataCell('data', o.country_code),
-                DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.id}/data"),
-                                  Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.id}/delete")])
+                DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.id}/data")])
                 ], onclick=f"/person/{o.id}/data", id=o.id
         ) for o in objects]
 
     def _get_buttons(self):
         return []
 
+    def _get_excluded(self, **kwargs) -> dict:
+        ...
+
     def _get_objects(self, query, **kwargs):
-        rid = kwargs['fpk']
+        excluded = self._get_excluded(**kwargs)
         q = query.pop('q') if 'q' in query else ''
         kwargs = format_filter_query(query)
         if 'gender__icontains' in kwargs.keys():
@@ -1112,23 +1112,40 @@ class RoleBulkAddView(ConcreteBrowseView):
             (Q(mail__isnull=False) & Q(mail__icontains=q)) |
             Q(description__icontains=q) |
             Q(notes__icontains=q), **kwargs
-            ).exclude(roles__id=rid)
+            ).exclude(**excluded)
 
     def _get_bulk_buttons(self):
         return {'bulkDelete': False, 'bulkAdd': True}
+
+    def _get_object(self, **kwargs) -> list[Model]:
+        ...
 
     def get(self, request, **kwargs):
         filters = self.filter_form(initial={k: v for k, v in request.GET.dict().items() if k != 'q'}) if self.filter_form is not None else None
         objects = self._get_objects(request.GET.dict(), **kwargs)
         q = request.GET.get('q') if request.GET.get('q') is not None else ''
         self._activate_nav_item()
-        self.nav_bars = self._set_nav_bars([Roles.objects.get(id=kwargs['fpk'])], self.first_setable_bar, **kwargs)
+        self.nav_bars = self._set_nav_bars(self._get_object(**kwargs), self.first_setable_bar, **kwargs)
         fields = self._get_fields(objects)
         buttons = self._get_buttons()
         bulk_buttons = self._get_bulk_buttons()
         table = HTMLTable(header_cells=self.header_cells, rows=fields, body_name='tbody')
         context = {'objects': objects, 'nav_bars': self.nav_bars, 'tables': [table], 'buttons': buttons, 'q': q, 'filters': filters, 'bulkButtons': bulk_buttons}
         return render(request, self.template_name, context)
+
+    def post(self, request, **kwargs):
+        ...
+
+
+class RoleBulkAddView(BulkAddView):
+    active_nav_items = ["Role", "Osoby z rolą"]
+    nav_bars = [BROWSE_NAV_ITEMS, ROLES_NAV_ITEMS]
+
+    def _get_excluded(self, **kwargs):
+        return {'roles__id': kwargs['fpk']}
+
+    def _get_object(self, **kwargs):
+        return [Roles.objects.get(id=kwargs['fpk'])]
 
     def post(self, request, **kwargs):
         if request.POST.get('actionType') == "bulkAdd":
@@ -1140,7 +1157,55 @@ class RoleBulkAddView(ConcreteBrowseView):
                 ) for id in ids
             ]
             PeopleRoles.objects.bulk_create(people)
-        return redirect(request.POST.get('referer'))
+        return redirect(f"/roles/{kwargs['fpk']}/data")
+
+
+class SemesterBulkAddView(BulkAddView):
+    active_nav_items = ["Kursy Językowe", "Semestry", "Uczestnicy"]
+    nav_bars = [BROWSE_NAV_ITEMS, COURSES_NAV_ITEMS, SEMESTERS_NAV_ITEMS]
+
+    def _get_excluded(self, **kwargs):
+        return {'peoplesemesters__course_id__id': kwargs['fpk'], 'peoplesemesters__semester_id__id': kwargs['spk']}
+
+    def _get_object(self, **kwargs):
+        return [Courses.objects.get(id=kwargs['fpk']), Semesters.objects.get(course_id=kwargs['fpk'], id=kwargs['spk'])]
+
+    def post(self, request, **kwargs):
+        if request.POST.get('actionType') == "bulkAdd":
+            ids = request.POST.get('ids').split(',')
+            people = [
+                PeopleSemesters(
+                    course_id=Courses.objects.get(id=kwargs['fpk']),
+                    semester_id=Semesters.objects.get(course_id=kwargs['fpk'], id=kwargs['spk']),
+                    person_id=People.objects.get(id=id)
+                ) for id in ids
+            ]
+            PeopleSemesters.objects.bulk_create(people)
+        return redirect(f"/course/{kwargs['fpk']}/semester/{kwargs['spk']}/attendees")
+
+
+class EventBulkAddView(BulkAddView):
+    active_nav_items = ["Wydarzenia", "Przeglądaj", "Obecność"]
+    nav_bars = [BROWSE_NAV_ITEMS, EVENT_NAV_ITEMS, CON_EVENT_NAV_ITEMS]
+    first_setable_bar = 2
+
+    def _get_excluded(self, **kwargs):
+        return {'peopleevents__event_id__id': kwargs['fpk']}
+
+    def _get_object(self, **kwargs):
+        return [Events.objects.get(id=kwargs['fpk'])]
+
+    def post(self, request, **kwargs):
+        if request.POST.get('actionType') == "bulkAdd":
+            ids = request.POST.get('ids').split(',')
+            people = [
+                PeopleEvents(
+                    event_id=Events.objects.get(id=kwargs['fpk']),
+                    person_id=People.objects.get(id=id)
+                ) for id in ids
+            ]
+            PeopleEvents.objects.bulk_create(people)
+        return redirect(f"/events/{kwargs['fpk']}/attendance")
 
 
 class RoleBrowseView(ConcreteBrowseView):
@@ -1932,7 +1997,8 @@ class SemestersAttendeesView(ConcreteBrowseView):
                 ], onclick=f"/person/{o.person_id.id}/data", id=o.person_id.id) for o in objects]
 
     def _get_buttons(self, **kwargs):
-        return [Button("Dodaj Uczestnika", f"/course/{kwargs['fpk']}/semester/{kwargs['spk']}/add_attendee")]
+        return [Button("Dodaj uczestnika", f"/course/{kwargs['fpk']}/semester/{kwargs['spk']}/add_attendee"),
+                Button("Dodaj wielu uczestników", f"/course/{kwargs['fpk']}/semester/{kwargs['spk']}/bulk_add")]
 
     def _get_objects(self, instance, query, **kwargs):
         q = query.pop('q') if 'q' in query else ''
@@ -1971,7 +2037,8 @@ class EventsAttendanceView(ConcreteBrowseView):
 
     def _get_buttons(self, **kwargs):
         return [Button("Dodaj uczestnika", f"/events/{kwargs['fpk']}/add_attendee"),
-                Button("Edytuj obecności", f"/events/{kwargs['fpk']}/edit_attendance")]
+                Button("Edytuj obecności", f"/events/{kwargs['fpk']}/edit_attendance"),
+                Button("Dodaj wielu uczestników", f"/events/{kwargs['fpk']}/bulk_add")]
 
     def _get_instances(self, **kwargs):
         return [Events.objects.get(id=kwargs['fpk'])]
