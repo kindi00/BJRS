@@ -442,6 +442,7 @@ class People(models.Model):
     description = models.CharField(LAN_PLP_DESC, max_length=50, blank=True, null=True)
     notes = models.CharField(LAN_PLP_NOTES, max_length=200, blank=True, null=True)
     parents = models.ManyToManyField('self', verbose_name=LAN_FAM_PARENT, through=ViewFamilies, through_fields=('pid_child', 'pid_parent'), symmetrical=False)
+    when_added = models.DateTimeField(auto_now=True, verbose_name="Dodano w dniu")
 
     class Meta:
         managed = False

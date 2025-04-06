@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS PEOPLE (
     country_code  VARCHAR(30),
     description   VARCHAR(50),
     notes         VARCHAR(200),
+    when_added    TIMESTAMP NOT NULL,
     UNIQUE NULLS DISTINCT (mail),
     CONSTRAINT fk_gender FOREIGN KEY(gender) REFERENCES GENDERS(id)
 );

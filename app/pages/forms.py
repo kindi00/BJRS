@@ -1,5 +1,6 @@
 from django.forms import ModelForm, Form, FileField, Textarea, BooleanField, CheckboxInput, DateTimeInput, DateInput, TimeInput, CharField, TextInput, IntegerField, NumberInput, DateTimeField, DateField, TimeField, MultipleChoiceField, CheckboxSelectMultiple, ChoiceField
 from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, Courses, Semesters, Attendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, PeopleSemesters, Activities, Consents, PeopleRoles, Attendance, PeopleEvents
+from datetime import datetime
 
 
 class MyDateInput(DateInput):
@@ -22,15 +23,15 @@ class FilterForm(ModelForm):
 
 
 class PeopleFilter(FilterForm):
-    field_order = ['name', 'surname', 'pcode', 'phone_nr', 'mail', 'is_adult', 'gender', 'country_code', 'description', 'notes', 'when_added__gte', 'when_added__lte']
+    field_order = ['name', 'surname', 'pcode', 'phone_nr', 'mail', 'is_adult', 'gender', 'country_code', 'description', 'notes', 'when_added__lte', 'when_added__gte']
     is_adult = ChoiceField(label='Czy pełnoletni', choices=(
             ("", ("---------")),
             ("unknown", ("Brak informacji")),
             ("true", ("Tak")),
             ("false", ("Nie")),
         ))
-    when_added__gte = DateTimeField(required=False, widget=MyDateTimeInput, label="Dodane przed")
-    when_added__lte = DateTimeField(required=False, widget=MyDateTimeInput, label="Dodane po")
+    when_added__lte = DateTimeField(required=False, widget=MyDateTimeInput, label="Dodane przed")
+    when_added__gte = DateTimeField(required=False, widget=MyDateTimeInput, label="Dodane po")
 
     class Meta:
         model = People
@@ -158,6 +159,18 @@ class PersonForm(UpdateableForm):
             ("true", ("Tak")),
             ("false", ("Nie")),
         )
+
+
+class ShowPersonForm(UpdateableForm):
+    _when_added = DateTimeField(widget=MyDateTimeInput, label="Dodane dnia")
+
+    class Meta:
+        model = People
+        fields = ['name', 'surname', 'phone_nr', 'mail', 'is_adult', 'gender', 'country_code', 'description', 'notes', '_when_added']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['_when_added'].initial = kwargs['instance'].when_added
 
 
 class PersonPeopleEventsForm(UpdateableForm):
