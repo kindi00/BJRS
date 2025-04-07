@@ -115,7 +115,8 @@ class Codes(models.Model):
             ),
             models.CheckConstraint(
                 check=models.Q(event_type__isnull=False) & models.Q(activity_type__isnull=True) | models.Q(event_type__isnull=True) & models.Q(activity_type__isnull=False),
-                name='event_or_activity_type'
+                name='event_or_activity_type',
+                violation_error_message='Proszę wybrać jeden i tylko jeden rodzaj (aktywności lub wydarzenia)'
             )
         ]
 
@@ -143,7 +144,7 @@ class RolesActivityTypes(models.Model):
         db_table = 'view_roles_activity_types'
         constraints = [
             models.UniqueConstraint(
-                fields=['rid', 'atid'], name='unique_rid_atid_combination'
+                fields=['rid', 'atid'], name='unique_rid_atid_combination', violation_error_message='Połączenie już istnieje'
             )
         ]
 
@@ -335,7 +336,7 @@ class Roles(models.Model):
         managed = False
         db_table = 'roles'
         constraints = [
-            models.UniqueConstraint(fields=['role_name'], name='unique_role_name')
+            models.UniqueConstraint(fields=['role_name'], name='unique_role_name', violation_error_message="Rola z tą nazwą już istnieje")
         ]
 
     def __str__(self) -> str:

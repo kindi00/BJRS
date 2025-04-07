@@ -129,6 +129,8 @@ class SemesterDateFilter(Form):
 class UpdateableForm(ModelForm):
     def __init__(self, fields: list[str] = None, values: list[any] = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.error_messages = {'unique': "Ta nazwa jest już zajęta"}
 
     def disable(self, fields: list[str]) -> None:
         if '__all' in fields:
@@ -197,6 +199,9 @@ class RoleForm(UpdateableForm):
     class Meta:
         model = Roles
         fields = ['role_name']
+
+    def __init__(self, fields = None, values = None, *args, **kwargs):
+        super().__init__(fields, values, *args, **kwargs)
 
     def clean(self):
         self.cleaned_data['role_name'] = self.cleaned_data['role_name'].title()
