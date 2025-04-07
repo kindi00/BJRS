@@ -226,6 +226,8 @@ class HomeView(TemplateView):
     template_name = "home.html"
 
     def get(self, request):
+        if request.user.is_authenticated:
+            return redirect("/browse/people")
         context = {'request': request}
         return render(request, self.template_name, context)
 
