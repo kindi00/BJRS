@@ -47,12 +47,8 @@
                 updateToggled(checkbox.value);
             }
         }
-        if (_checked) {
-            document.getElementById('deleteToggled').disabled = false;
-        } else {
-            toggled = [];
-            document.getElementById('deleteToggled').disabled = true;
-        }
+        if (!_checked) {toggled = [];}
+        turnOffButtons();
         document.getElementById('shownCheckboxes').checked = false;
     }
     function deleteChecked(){
