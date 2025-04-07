@@ -59,7 +59,7 @@ class ActivityTypes(models.Model):
 
 class AttendanceTypes(models.Model):
     id = models.SmallAutoField(primary_key=True, db_column='id')
-    name = models.CharField(max_length=20, unique=True, db_column='name')
+    name = models.CharField(max_length=20, unique=True, db_column='name', verbose_name='Nazwa')
 
     class Meta:
         managed = False
@@ -419,7 +419,7 @@ class Attendance(models.Model):
 
 class Genders(models.Model):
     id = models.SmallAutoField(primary_key=True, db_column='id')
-    name = models.CharField(max_length=20, unique=True, db_column='name')
+    name = models.CharField(max_length=20, unique=True, db_column='name', verbose_name="Nazwa")
 
     class Meta:
         managed = False

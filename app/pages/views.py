@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from .forms import ModelForm, PersonForm, RoleForm, ProjectForm, UploadFileForm, EventForm, EventTypeForm, CategoriesForm, GroupsForm, ViewFamiliesForm, CoursesForm, SemesterForm, AttendeesForm, AttendeesFormEdit, SemesterFormEdit, ActivityTypesForm, RolesActivityTypesForm, CodesForm, SemesterDatesForm, PeopleSemestersForm, ActivitiesForm, ActivitiesViewForm, ConsentsForm, GrantRoleForm, EditAttendanceFromDate, EditAttendanceFromPerson, PersonPeopleEventsForm, EventPeopleEventsForm, PeopleFilter, FamilyFilter, ActivityFilter, CourseFilter, EventFilter, PersonCourseFilter, PersonActivitiesFilter, CourseSemesterFilter, SemesterDateFilter, CodeFilter, ReportForm, ShowPersonForm
-from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, PeopleRoles, Courses, Semesters, Attendees, SelectAttendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, Attendance, PeopleSemesters, Activities, Consents, PeopleEvents, Genders
+from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, PeopleRoles, Courses, Semesters, Attendees, SelectAttendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, Attendance, PeopleSemesters, Activities, Consents, PeopleEvents, Genders, AttendanceTypes
 from django.db import connection
 from django.db.models import Q, Model, Value, CharField, Count, Sum
 from django.db.models.functions import Concat
@@ -12,7 +12,7 @@ from csv import DictReader, writer
 from io import TextIOWrapper
 from dataclasses import dataclass
 from django.http import FileResponse
-import os
+import json
 
 
 @dataclass
@@ -209,6 +209,14 @@ PERSON_NAV_ITEMS = [
 ]
 
 
+SETTINGS_NAV_ITEMS = [
+    NavItem("Role nauczycieli", "/admin_settings/teachers"),
+    NavItem("Role kursantów", "/admin_settings/attendees"),
+    NavItem("Płcie", "/admin_settings/genders"),
+    NavItem("Rodzaje obecności", "/admin_settings/attendance_types")
+]
+
+
 def logoutUser(request):
     logout(request)
     return redirect("/")
@@ -270,8 +278,7 @@ class BrowseView(TemplateView, NavigationBar):
     def post(self, request):
         if request.POST.get('actionType') == "bulkDelete":
             ids = request.POST.get('ids').split(',')
-            print(ids)
-            # self.model.objects.filter(id__in=ids).delete()
+            self.model.objects.filter(id__in=ids).delete()
         return self.get(request)
 
 
@@ -577,6 +584,136 @@ class BrowseEventsView(BrowseView):
             Q(description__icontains=q) |
             Q(id_event_type__name__icontains=q), **kwargs
             )
+
+
+class BrowseGendersView(BrowseView):
+    model = Genders
+    active_nav_items = ["Płcie"]
+    header_cells = [
+        HeaderCell("Płeć", 0, "th0", True),
+        HeaderCell("Opcje", None, None, False)
+    ]
+    nav_bars = [SETTINGS_NAV_ITEMS]
+
+    def _get_fields(self, objects):
+        return [HTMLRow([
+                    DataCell('data', o),
+                    DataCell('link', [Link("Usuń", "btn btn-danger btn-sm", f"/gender/{o.id}/delete")])
+                ], id=o.id
+        ) for o in objects]
+
+    def _get_buttons(self):
+        return [Button("Dodaj płeć", "/add_gender")]
+
+    def _get_objects(self, query, **kwargs):
+        return self.model.objects.all()
+
+
+class BrowseAttendanceTypesView(BrowseView):
+    model = AttendanceTypes
+    active_nav_items = ["Rodzaje obecności"]
+    header_cells = [
+        HeaderCell("Rodzaj obecności", 0, "th0", True),
+        HeaderCell("Opcje", None, None, False)
+    ]
+    nav_bars = [SETTINGS_NAV_ITEMS]
+
+    def _get_fields(self, objects):
+        return [HTMLRow([
+                DataCell('data', o),
+                DataCell('link', [Link("Usuń", "btn btn-danger btn-sm", f"/attendance_type/{o.id}/delete")])
+                ], id=o.id
+        ) for o in objects]
+
+    def _get_buttons(self):
+        return [Button("Dodaj rodzaj aktywności", "/add_attendance_type")]
+
+    def _get_objects(self, query, **kwargs):
+        return self.model.objects.all()
+
+
+class BrowseTeacherRolesView(BrowseView):
+    model = Roles
+    active_nav_items = ["Role nauczycieli"]
+    header_cells = [
+        HeaderCell("Role", 0, "th0", True),
+        HeaderCell("Opcje", None, None, False)
+    ]
+    nav_bars = [SETTINGS_NAV_ITEMS]
+
+    def _get_fields(self, objects):
+        return [HTMLRow([
+                DataCell('data', o),
+                DataCell('link', [Link("Usuń", "btn btn-danger btn-sm", f"/teacher_roles/{o.id}/delete")])
+                ], id=o.id
+        ) for o in objects]
+
+    def _get_buttons(self):
+        return [Button("Dodaj rolę", "/add_teacher_role")]
+
+    def _get_objects(self, query, **kwargs):
+        with open("pages/static/settings.json") as jfile:
+            j = json.load(jfile)
+            ids = j['teacher_roles']['ids']
+        return self.model.objects.filter(id__in=ids)
+
+
+class DeleteTeacherRoleView(TemplateView):
+    template_name = "delete.html"
+
+    def get(self, request, **kwargs):
+        context = {'obj': Roles.objects.get(id=kwargs['fpk'])}
+        return render(request, self.template_name, context)
+
+    def post(self, request, **kwargs):
+        with open("pages/static/settings.json", "r") as jfile:
+            j = json.load(jfile)
+            j['teacher_roles']['ids'].remove(int(kwargs['fpk']))
+        with open("pages/static/settings.json", "w") as jfile:
+            json.dump(j, jfile)
+        return redirect(request.POST.get('referer'))
+
+
+class BrowseStudentRolesView(BrowseView):
+    model = Roles
+    active_nav_items = ["Role kursantów"]
+    header_cells = [
+        HeaderCell("Role", 0, "th0", True),
+        HeaderCell("Opcje", None, None, False)
+    ]
+    nav_bars = [SETTINGS_NAV_ITEMS]
+
+    def _get_fields(self, objects):
+        return [HTMLRow([
+                DataCell('data', o),
+                DataCell('link', [Link("Usuń", "btn btn-danger btn-sm", f"/student_roles/{o.id}/delete")])
+                ], id=o.id
+        ) for o in objects]
+
+    def _get_buttons(self):
+        return [Button("Dodaj rolę", "/add_student_role")]
+
+    def _get_objects(self, query, **kwargs):
+        with open("pages/static/settings.json") as jfile:
+            j = json.load(jfile)
+            ids = j['student_roles']['ids']
+        return self.model.objects.filter(id__in=ids)
+
+
+class DeleteStudentRoleView(TemplateView):
+    template_name = "delete.html"
+
+    def get(self, request, **kwargs):
+        context = {'obj': Roles.objects.get(id=kwargs['fpk'])}
+        return render(request, self.template_name, context)
+
+    def post(self, request, **kwargs):
+        with open("pages/static/settings.json", "r") as jfile:
+            j = json.load(jfile)
+            j['student_roles']['ids'].remove(int(kwargs['fpk']))
+        with open("pages/static/settings.json", "w") as jfile:
+            json.dump(j, jfile)
+        return redirect(request.POST.get('referer'))
 
 
 class BrowseEventTypesView(BrowseEventsView):

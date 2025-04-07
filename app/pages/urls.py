@@ -109,5 +109,17 @@ urlpatterns = [
     path("person/<str:fpk>/consent/<str:spk>/delete", login_required(views.DeleteConsentView.as_view(), login_url='/'), name="consent_delete"),
     path("person/<str:fpk>/add_consent", login_required(views.AddConsentView.as_view(), login_url='/'), name="add_consent"),
     path("person/<str:fpk>/consent/<str:spk>/data", login_required(views.ConsentDataView.as_view(), login_url='/'), name="consent_data"),
-    path("person/<str:fpk>/consent/<str:spk>/edit", login_required(views.ConsentDataEditView.as_view(), login_url='/'), name="consent_edit")
+    path("person/<str:fpk>/consent/<str:spk>/edit", login_required(views.ConsentDataEditView.as_view(), login_url='/'), name="consent_edit"),
+    path("admin_settings/genders", login_required(views.BrowseGendersView.as_view(), login_url='/'), name="browse_genders"),
+    path("add_gender", login_required(views.get_concrete_addView("Dodaj płeć", forms.GenderForm, [views.SETTINGS_NAV_ITEMS], "Płcie").as_view(), login_url='/'), name="add_gender"),
+    path("gender/<str:fpk>/delete", login_required(views.get_delete(models.Genders).as_view(), login_url='/'), name="delete_gender"),
+    path("admin_settings/attendance_types", login_required(views.BrowseAttendanceTypesView.as_view(), login_url='/'), name="browse_attendance_types"),
+    path("add_attendance_type", login_required(views.get_concrete_addView("Dodaj rodzaj obecności", forms.AttendanceTypesForm, [views.SETTINGS_NAV_ITEMS], "Rodzaje obecności").as_view(), login_url='/'), name="add_attendance_type"),
+    path("attendance_type/<str:fpk>/delete", login_required(views.get_delete(models.AttendanceTypes).as_view(), login_url='/'), name="delete_attendance_type"),
+    path("admin_settings/teachers", login_required(views.BrowseTeacherRolesView.as_view(), login_url='/'), name="browse_teacher_roles"),
+    path("add_teacher_role", login_required(views.get_concrete_addView("Dodaj rolę zezwalającą na nauczanie", forms.TeacherRolesForm, [views.SETTINGS_NAV_ITEMS], ["Role nauczycieli"]).as_view(), login_url='/'), name="add_teacher_role"),
+    path("teacher_roles/<str:fpk>/delete", login_required(views.DeleteTeacherRoleView.as_view(), login_url='/'), name="delete_teacher_role"),
+    path("admin_settings/attendees", login_required(views.BrowseStudentRolesView.as_view(), login_url='/'), name="browse_student_roles"),
+    path("add_student_role", login_required(views.get_concrete_addView("Dodaj rolę zezwalającą na uczestnictwo w kursach", forms.StudentRolesForm, [views.SETTINGS_NAV_ITEMS], ["Role kursantów"]).as_view(), login_url='/'), name="add_student_role"),
+    path("student_roles/<str:fpk>/delete", login_required(views.DeleteStudentRoleView.as_view(), login_url='/'), name="delete_student_role")
 ]

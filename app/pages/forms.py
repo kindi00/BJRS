@@ -1,6 +1,6 @@
-from django.forms import ModelForm, Form, FileField, Textarea, BooleanField, CheckboxInput, DateTimeInput, DateInput, TimeInput, CharField, TextInput, IntegerField, NumberInput, DateTimeField, DateField, TimeField, MultipleChoiceField, CheckboxSelectMultiple, ChoiceField
-from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, Courses, Semesters, Attendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, PeopleSemesters, Activities, Consents, PeopleRoles, Attendance, PeopleEvents
-from datetime import datetime
+from django.forms import ModelForm, Form, FileField, Textarea, BooleanField, CheckboxInput, DateTimeInput, DateInput, TimeInput, CharField, TextInput, IntegerField, NumberInput, DateTimeField, DateField, TimeField, MultipleChoiceField, CheckboxSelectMultiple, ChoiceField, ModelChoiceField
+from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, Courses, Semesters, Attendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, PeopleSemesters, Activities, Consents, PeopleRoles, Attendance, PeopleEvents, Genders, AttendanceTypes
+import json
 
 
 class MyDateInput(DateInput):
@@ -270,6 +270,15 @@ class CoursesForm(UpdateableForm):
         model = Courses
         exclude = ['id']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        with open('pages/static/settings.json') as jfile:
+            j = json.load(jfile)
+            self.fields['teacher_id'].queryset = People.objects.filter(
+                roles__id__in=j['teacher_roles']['ids']
+            )
+            print(self.fields['teacher_id'])
+
     def clean(self):
         self.cleaned_data['name'] = self.cleaned_data['name'].title()
         return super().clean()
@@ -371,6 +380,11 @@ class PeopleSemestersForm(UpdateableForm):
         super().__init__(*args, **kwargs)
         self.fields['course_id'].widget.attrs.update({'id': 'course', 'onchange': 'toggleChange()'})
         self.fields['semester_id'].widget.attrs.update({'id': 'semester', 'disabled': 'true'})
+        with open('pages/static/settings.json') as jfile:
+            j = json.load(jfile)
+            self.fields['person_id'].queryset = People.objects.filter(
+                roles__id__in=j['student_roles']['ids']
+            )
 
 
 class ConsentsForm(UpdateableForm):
@@ -448,3 +462,49 @@ class EditAttendanceFromPerson(UpdateableForm):
 class ReportForm(Form):
     since = DateField(label="Od", widget=MyDateInput())
     to = DateField(label="Do", widget=MyDateInput())
+
+
+class GenderForm(UpdateableForm):
+    class Meta:
+        model = Genders
+        fields = ['name']
+
+
+class AttendanceTypesForm(UpdateableForm):
+    class Meta:
+        model = AttendanceTypes
+        fields = ['name']
+
+
+class TeacherRolesForm(Form):
+    with open("pages/static/settings.json") as jfile:
+        j = json.load(jfile)
+        role = ModelChoiceField(
+            queryset=Roles.objects.exclude(id__in=j['teacher_roles']['ids']),
+            required=True,
+            label="Rola"
+        )
+
+    def save(self):
+        with open("pages/static/settings.json", "r") as jfile:
+            j = json.load(jfile)
+            j['teacher_roles']['ids'].append(int(self.data['role']))
+        with open("pages/static/settings.json", "w") as jfile:
+            json.dump(j, jfile)
+
+
+class StudentRolesForm(Form):
+    with open("pages/static/settings.json") as jfile:
+        j = json.load(jfile)
+        role = ModelChoiceField(
+            queryset=Roles.objects.exclude(id__in=j['student_roles']['ids']),
+            required=True,
+            label="Rola"
+        )
+
+    def save(self):
+        with open("pages/static/settings.json", "r") as jfile:
+            j = json.load(jfile)
+            j['student_roles']['ids'].append(int(self.data['role']))
+        with open("pages/static/settings.json", "w") as jfile:
+            json.dump(j, jfile)
