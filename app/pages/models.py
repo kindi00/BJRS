@@ -174,7 +174,7 @@ class Categories(models.Model):
 
 class Courses(models.Model):
     id = models.SmallAutoField(primary_key=True, db_column='id')
-    name = models.CharField(max_length=50, blank=True, null=True, db_column='name', verbose_name="Nazwa", unique=True)
+    name = models.CharField(max_length=50, db_column='name', verbose_name="Nazwa", unique=True)
     teacher_id = models.ForeignKey('People', models.SET_NULL, db_column='teacher_id', null=True, blank=True, verbose_name="Nauczyciel")
     description = models.CharField(max_length=2000, blank=True, null=True, db_column='description', verbose_name="Opis")
 
@@ -184,6 +184,16 @@ class Courses(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def validate(self) -> list:
+        errors = []
+        if self.name == '':
+            errors.append("Brak nazwy")
+        if self.name.__len__() > 50:
+            errors.append("Za długa nazwa (maksymalnie 50 znaków)")
+        if self.description.__len__() > 2000:
+            errors.append("Za długi opis (maksymalnie 2000 znaków)")
+        return errors
 
 
 class Consents(models.Model):
@@ -224,6 +234,16 @@ class Semesters(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def validate(self) -> list:
+        errors = []
+        if self.name == '':
+            errors.append("Brak nazwy")
+        if self.name.__len__() > 50:
+            errors.append("Za długa nazwa (maksymalnie 50 znaków)")
+        if self.description.__len__() > 2000:
+            errors.append("Za długi opis (maksymalnie 2000 znaków)")
+        return errors
 
 
 class EventTypes(models.Model):
@@ -329,7 +349,7 @@ class PeopleEvents(models.Model):
 
 class Roles(models.Model):
     id = models.SmallAutoField(primary_key=True, db_column='rid')
-    role_name = models.CharField(verbose_name=LAN_ROL_NAME, db_column='role_name', max_length=50)
+    role_name = models.CharField(verbose_name=LAN_ROL_NAME, db_column='role_name', max_length=50, unique=True)
     plp_w_roles = models.ManyToManyField('People', verbose_name=LAN_ROL_PLP, through=PeopleRoles)
 
     class Meta:
@@ -341,6 +361,14 @@ class Roles(models.Model):
 
     def __str__(self) -> str:
         return self.role_name
+
+    def validate(self) -> list:
+        errors = []
+        if self.role_name == '':
+            errors.append("Brak nazwy")
+        elif self.role_name.__len__() > 50:
+            errors.append("Nazwa zbyt długa (maksymalnie 50 znaków)")
+        return errors
 
 
 class Families(models.Model):
@@ -436,7 +464,7 @@ class People(models.Model):
     surname = models.CharField(LAN_PLP_SURNAME, max_length=50)
     pcode = models.SmallIntegerField('Kod', null=True, validators=[MinValueValidator(1, "Kod nie może być mniejszy niż 1")])
     phone_nr = models.CharField(LAN_PLP_PHONE, max_length=15, blank=True, null=True)
-    mail = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    mail = models.CharField(max_length=50, blank=True, null=True)
     is_adult = models.BooleanField(verbose_name='Czy pełnoletni', blank=True, null=True)
     gender = models.ForeignKey('Genders', on_delete=models.DO_NOTHING, verbose_name=LAN_PLP_GENDER, blank=True, null=True, db_column='gender')
     country_code = models.CharField(LAN_PLP_COUNTRY, max_length=30, blank=True, null=True)
@@ -453,3 +481,25 @@ class People(models.Model):
         if self.pcode is None:
             return f"{self.name} {self.surname}"
         return f"{self.name} {self.surname} {self.pcode}"
+
+    def validate(self) -> list:
+        errors = []
+        if self.name == '':
+            errors.append("Brak imienia")
+        elif self.name.__len__() > 50:
+            errors.append("Imię zbyt długie (maksymalnie 50 znaków)")
+        if self.surname == '':
+            errors.append("Brak nazwiska")
+        elif self.surname.__len__() > 50:
+            errors.append("Nazwisko zbyt długie (maksymalnie 50 znaków)")
+        if self.phone_nr.__len__() > 15:
+            errors.append("Numer telefonu zbyt długi (maksymalnie 15 znaków)")
+        if self.mail is not None and self.mail.__len__() > 50:
+            errors.append("Mail zbyt długi (maksymalnie 50 znaków)")
+        if self.country_code.__len__() > 30:
+            errors.append("Nazwa kraju zbyt długa (maksymalnie 30 znaków)")
+        if self.description.__len__() > 50:
+            errors.append("Cecha charakterystyczna zbyt długia (maksymalnie 50 znaków)")
+        if self.notes.__len__() > 200:
+            errors.append("Uwagi zbyt długie (maksymalnie 200 znaków)")
+        return errors

@@ -3,9 +3,10 @@ from django.views.generic import TemplateView
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.core.exceptions import ValidationError
 from .forms import ModelForm, PersonForm, RoleForm, ProjectForm, UploadFileForm, EventForm, EventTypeForm, CategoriesForm, GroupsForm, ViewFamiliesForm, CoursesForm, SemesterForm, AttendeesForm, AttendeesFormEdit, SemesterFormEdit, ActivityTypesForm, RolesActivityTypesForm, CodesForm, SemesterDatesForm, PeopleSemestersForm, ActivitiesForm, ActivitiesViewForm, ConsentsForm, GrantRoleForm, EditAttendanceFromDate, EditAttendanceFromPerson, PersonPeopleEventsForm, EventPeopleEventsForm, PeopleFilter, FamilyFilter, ActivityFilter, CourseFilter, EventFilter, PersonCourseFilter, PersonActivitiesFilter, CourseSemesterFilter, SemesterDateFilter, CodeFilter, ReportForm, ShowPersonForm
 from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, PeopleRoles, Courses, Semesters, Attendees, SelectAttendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, Attendance, PeopleSemesters, Activities, Consents, PeopleEvents, Genders, AttendanceTypes
-from django.db import connection
+from django.db import connection, IntegrityError
 from django.db.models import Q, Model, Value, CharField, Count, Sum
 from django.db.models.functions import Concat
 from csv import DictReader, writer
@@ -85,6 +86,7 @@ def map_is_adult(input: str) -> bool:
             'niepelnoletni': False,
             'niepełnoletni': False,
             'brak_informacji': None,
+            'brak informacji': None,
         }[input]
     except KeyError:
         return None
@@ -1847,19 +1849,21 @@ class ImportView(TemplateView, NavigationBar):
     nav_bars = [BROWSE_NAV_ITEMS]
     example_table: HTMLTable = ...
 
-    def get(self, request):
+    def get(self, request, errors: dict = None, no_inserts: int = None):
         form = UploadFileForm()
         self._activate_nav_item()
         nav_bars = self._set_nav_bars([])
-        context = {'desc': self.desc, 'form': form, 'nav_bars': nav_bars, 'tables': [self.example_table]}
+        context = {'desc': self.desc, 'form': form, 'nav_bars': nav_bars, 'tables': [self.example_table], 'errors': errors, 'no_inserts': no_inserts}
         return render(request, self.template_name, context)
 
     def post(self, request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             data = read_input(request.FILES["file"])
-            self.save_data(data)
-            return redirect(request.POST.get('referer'))
+            output = self.save_data(data)
+            if output is not None:
+                errors, no_inserts = output
+            return self.get(request, errors, no_inserts)
 
     def save_data(self, data: dict): ...
 
@@ -1875,20 +1879,36 @@ class ImportPersonView(ImportView):
     )
 
     def save_data(self, data):
-        People.objects.bulk_create(
-            [People(
-                name=row['imie'],
-                surname=row['nazwisko'],
-                phone_nr=row['telefon'],
-                mail=row['mail'],
-                is_adult=map_is_adult(row['czy_pelnoletni']),
-                gender=Genders.objects.get(name=row['plec']) if row['plec'] != '' else None,
-                country_code=row['kraj'],
-                description=row['cecha charakterystyczna'],
-                notes=row['opis'],
-                    ) for row in data],
-            ignore_conflicts=True
-        )
+        people = []
+        all_errors = {}
+        for i, row in enumerate(data):
+            errors = []
+            try:
+                gender = Genders.objects.get(name=row['plec']) if row['plec'] != '' else None
+            except Genders.DoesNotExist:
+                errors.append("Nieprawidłowa płeć")
+                gender = None
+            person = People(
+                    name=row['imie'],
+                    surname=row['nazwisko'],
+                    phone_nr=row['telefon'],
+                    mail=row['mail'] if row['mail'] != '' else None,
+                    is_adult=map_is_adult(row['czy_pelnoletni']),
+                    gender=gender,
+                    country_code=row['kraj'],
+                    description=row['cecha charakterystyczna'],
+                    notes=row['opis'])
+            errors += person.validate()
+            try:
+                person.validate_unique()
+            except ValidationError:
+                errors.append("Osoba z tym adresem mail już istnieje")
+            if not errors:
+                people.append(person)
+            else:
+                all_errors[i+1] = errors.copy()
+        People.objects.bulk_create(people)
+        return all_errors, len(people)
 
 
 class ImportRoleView(ImportView):
@@ -1902,10 +1922,22 @@ class ImportRoleView(ImportView):
     )
 
     def save_data(self, data):
-        Roles.objects.bulk_create(
-            [Roles(role_name=row['nazwa']) for row in data],
-            ignore_conflicts=True
-        )
+        roles = []
+        all_errors = {}
+        for i, row in enumerate(data):
+            errors = []
+            role = Roles(role_name=row['nazwa'])
+            errors += role.validate()
+            try:
+                role.validate_unique()
+            except ValidationError:
+                errors.append("Rola z tą nazwą już istnieje")
+            if not errors:
+                roles.append(role)
+            else:
+                all_errors[i+1] = errors.copy()
+        Roles.objects.bulk_create(roles)
+        return all_errors, len(roles)
 
 
 class ImportCourseView(ImportView):
@@ -1922,12 +1954,30 @@ class ImportCourseView(ImportView):
 
     def save_data(self, data):
         courses_list = []
-        for row in data:
-            name, surname, pcode = row['nauczyciel'].split(' ')
-            courses_list.append(Courses(name=row['nazwa'],
-                                        description=row['opis'],
-                                        teacher_id=People.objects.get(name=name, surname=surname, pcode__icontains=pcode)))
-        Courses.objects.bulk_create(courses_list, ignore_conflicts=True)
+        all_errors = {}
+        for i, row in enumerate(data):
+            errors = []
+            try:
+                name, surname, pcode = row['nauczyciel'].split(' ')
+                teacher = People.objects.get(name=name, surname=surname, pcode__icontains=pcode) if row['nauczyciel'] != '' else None
+                course = Courses(
+                        name=row['nazwa'],
+                        description=row['opis'],
+                        teacher_id=teacher)
+                errors += course.validate()
+                course.validate_unique()
+            except People.DoesNotExist:
+                errors.append("Nie ma takiego nauczyciela")
+            except ValueError:
+                errors.append("Nieprawidłowy nauczyciel")
+            except ValidationError:
+                errors.append("Kurs z tą nazwą już istnieje")
+            if not errors:
+                courses_list.append(course)
+            else:
+                all_errors[i+1] = errors.copy()
+        Courses.objects.bulk_create(courses_list)
+        return all_errors, len(courses_list)
 
 
 class ImportPeopleSemestersView(ImportView):
@@ -1944,46 +1994,83 @@ class ImportPeopleSemestersView(ImportView):
             HTMLRow([DataCell('', 'Polski A2'), DataCell('', '2024Z'), DataCell('', 'Janina'), DataCell('', 'Kowalska'), DataCell('', ''), DataCell('', 'janinkow@ee.ee'), DataCell('', ''), DataCell('', ''), DataCell('', ''), DataCell('', '')])]
     )
 
+    def _check_if_person_exists(self, people: dict, used_mails: dict, row: dict, i: int) -> bool:
+        if row['mail'] in used_mails.keys():
+            used_mails[row['mail']].append(i)
+            return True
+        used_mails[row['mail']] = []
+        try:
+            People.objects.get(mail=row['mail'])
+            used_mails[row['mail']].append(i)
+            return True
+        except People.DoesNotExist:
+            return False
+
     def save_data(self, data):
-        people_semesters_list = []
-        people_list = []
-        for row in data:
-            try:
-                if row['mail'] == '':
-                    raise People.DoesNotExist  # when mail is empty assume that person does not exist
-                person = People.objects.get(mail=row['mail'])
-            except People.DoesNotExist:
-                people_list.append(
-                    People(
+        used_mails = {}
+        people = {}
+        all_errors = {}
+        for i, row in enumerate(data):
+            if row['mail'] == '' or not self._check_if_person_exists(people, used_mails, row, i):
+                errors = []
+                try:
+                    gender = Genders.objects.get(name=row['plec']) if row['plec'] != '' else None
+                except Genders.DoesNotExist:
+                    errors.append("Nieprawidłowa płeć")
+                    gender = None
+                person = People(
                         name=row['imie'],
                         surname=row['nazwisko'],
                         phone_nr=row['telefon'],
-                        mail=row['mail'],
+                        mail=row['mail'] if row['mail'] != '' else None,
                         is_adult=map_is_adult(row['czy_pelnoletni']),
-                        gender=Genders.objects.get(name=row['plec']) if row['plec'] != '' else None,
+                        gender=gender,
                         country_code=row['kraj'],
                         description=row['cecha charakterystyczna'],
-                        notes=row['opis']
-                    )
-                )
-        People.objects.bulk_create(people_list, ignore_conflicts=True)
-        for row in data:
-            person = People.objects.get(mail=row['mail'])
-            semester = Semesters.objects.get(course_id__name=row['nazwa kursu'], name=row['nazwa semestru'])
-            course_id = Courses.objects.get(name=row['nazwa kursu'])
+                        notes=row['opis'])
+                errors += person.validate()
+                try:
+                    person.validate_unique()
+                except ValidationError:
+                    errors.append("Osoba z tym adresem mail już istnieje")
+                if not errors:
+                    people[i] = person
+                else:
+                    all_errors[i+1] = errors.copy()
+        plp = People.objects.bulk_create(people.values())
+        for i, k in enumerate(people.keys()):
+            people[k] = plp[i]
+        for k, v in used_mails.items():
+            for id in v:
+                people[id] = People.objects.get(mail=k)
+
+        people_semesters = []
+        for i, row in enumerate(data):
+            errors = []
             try:
-                people_semesters = PeopleSemesters.objects.get(person_id=person, semester_id=semester, course_id=course_id)
+                person = People.objects.get(id=people[i].id)
+                course_id = Courses.objects.get(name=row['nazwa kursu'])
+                semester = Semesters.objects.get(course_id__name=row['nazwa kursu'], name=row['nazwa semestru'])
+                people_semester = PeopleSemesters.objects.get(person_id=person, semester_id=semester, course_id=course_id)
+                errors.append("Osoba już jest zapisana na ten kurs")
+            except KeyError:
+                continue
             except Courses.DoesNotExist:
-                ...
+                errors.append("Nie ma takiego kursu")
             except Semesters.DoesNotExist:
-                ...
+                errors.append("Nie ma takiego semestru")
             except PeopleSemesters.DoesNotExist:
-                people_semesters_list.append(PeopleSemesters(
+                people_semesters.append(PeopleSemesters(
                     course_id=course_id,
                     semester_id=semester,
                     person_id=person)
                 )
-        PeopleSemesters.objects.bulk_create(people_semesters_list, ignore_conflicts=True)
+            if errors:
+                all_errors[i+1] = errors.copy()
+        PeopleSemesters.objects.bulk_create(people_semesters, ignore_conflicts=True)
+
+        all_errors = {k: v for k, v in sorted(all_errors.items(), key=lambda item: item[0])}
+        return all_errors, f"{len(plp)} (Osoby) + {len(people_semesters)} (Zapisy)"
 
 
 class ImportSemestersView(ImportView):
@@ -1999,42 +2086,51 @@ class ImportSemestersView(ImportView):
 
     def save_data(self, data):
         courses_list = []
-        courses_names = []
-        for row in data:
+        all_errors = {}
+        for i, row in enumerate(data):
             try:
-                course = Courses.objects.get(name=row["Nazwa"])
+                Courses.objects.get(name=row['nazwa kursu'])
             except Courses.DoesNotExist:
-                if row["Nazwa"] in courses_names:
-                    continue
+                errors = []
                 try:
-                    teacher = People.objects.get(mail=row["Email_nauczyciela"]) if row["Email_nauczyciela"] != "" else None
-                    courses_list.append(
-                        Courses(
-                            name=row["Nazwa"],
-                            teacher_id=teacher,
-                            description=row["Opis"]
-                        )
-                    )
-                    courses_names.append(row["Nazwa"])
+                    teacher = People.objects.get(mail=row['mail nauczyciela']) if row['mail nauczyciela'] != '' else None
+                    course = Courses(
+                            name=row['nazwa kursu'],
+                            description=row['opis kursu'],
+                            teacher_id=teacher)
+                    errors += course.validate()
+                    course.validate_unique()
                 except People.DoesNotExist:
-                    ...
-        Courses.objects.bulk_create(courses_list, ignore_conflicts=True)
+                    errors.append("Nie ma takiego nauczyciela")
+                except ValueError:
+                    errors.append("Nieprawidłowy nauczyciel")
+                except ValidationError:
+                    errors.append("Kurs z tą nazwą już istnieje")
+                if not errors:
+                    courses_list.append(course)
+                else:
+                    all_errors[i+1] = errors.copy()
+        Courses.objects.bulk_create(courses_list)
+
         semesters_list = []
-        for row in data:
+        for i, row in enumerate(data):
+            errors = []
             try:
-                semester = Semesters.objects.get(name=row["Semestr"], course_id__name=row["Nazwa"])
-            except Semesters.DoesNotExist:
-                try:
-                    course = Courses.objects.get(name=row["Nazwa"])
-                    semesters_list.append(
-                        Semesters(
-                            course_id=course,
-                            name=row["Semestr"]
-                        )
-                    )
-                except Courses.DoesNotExist:
-                    ...
+                course = Courses.objects.get(name=row["nazwa kursu"])
+                semester = Semesters(name=row["nazwa semestru"], course_id=course, description=row['opis semestru'])
+                errors += semester.validate()
+                semester.validate_unique()
+                if not errors:
+                    semesters_list.append(semester)
+            except Courses.DoesNotExist:
+                ...
+            except ValidationError:
+                errors.append("Semestr z tą nazwą już istnieje")
+            print(errors)
+            if errors:
+                all_errors[i+1] = errors.copy()
         Semesters.objects.bulk_create(semesters_list)
+        return all_errors, len(semesters_list)
 
 
 class EventsAttendeesView(ConcreteBrowseView, NavigationBar):

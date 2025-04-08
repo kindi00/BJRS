@@ -1,16 +1,18 @@
 {% extends "browse/main.html" %}
 
 {% block content %}
-<div>
-    <h3>
-        Jak ma wyglądać plik:
-    </h3>
-    <h4>
-        {{ desc|linebreaks }}
-    </h4>
-    <h3>
-        Przykładowy wygląd danych:
-    </h3>
+<div class="card p-1 m-2">
+    <div class="">
+        <h3>
+            Jak ma wyglądać plik:
+        </h3>
+        <h4>
+            {{ desc|linebreaks }}
+        </h4>
+        <h3>
+            Przykładowy wygląd danych:
+        </h3>
+    </div>
     <table id="browse_table" class="table table-bordered">
     {% for table in tables %}
     <thead class="table-light">
@@ -37,8 +39,34 @@
         <div class="mb-3">
             <input class="form-control" type="file" id="file" name="file" accept=".csv" required>
         </div>
-        <br>
-        <div class="form-group">
+        <div class="form-group m-3">
+            {% if no_inserts %}
+                <p class="text-success">Udało się importować ilość wierszy: {{ no_inserts }}</p>
+            {% endif %}
+        </div>
+        <div class="form-group m-3">
+            {% if errors.items|length > 0 %}
+            <table id="browse_table" class="table table-bordered table-danger">
+                <thead class="table-danger">
+                    <tr>
+                        <th style="width: 5%;">Linia</th>
+                        <th>Błąd</th>
+                    </tr>
+                </thead>
+                <tbody class="table-danger" id="{{table.body_name}}">
+                    {% for row, error_list in errors.items %}
+                    {% for error in error_list %}
+                    <tr>
+                        <td scope="col" style="width: 5%;">{{ row }}</td>
+                        <td scope="col">{{ error }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        <div class="form-group m-3">
             <input class="btn btn-success" type="submit" value="Importuj" />
             <input type="hidden" name="referer" value="{{request.META.HTTP_REFERER}}" />
             <a class="btn btn-outline-dark" href="{{request.META.HTTP_REFERER}}">Anuluj</a>
