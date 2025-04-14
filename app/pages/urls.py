@@ -26,7 +26,8 @@ urlpatterns = [
     path("add/course", login_required(views.get_concrete_addView("Dodaj kurs", forms.CoursesForm, [views.BROWSE_NAV_ITEMS], ["Kursy"]).as_view(), login_url='/'), name="add_course"),
     path("add/event_type", login_required(views.get_concrete_addView("Dodaj typ wydarzeń", forms.EventTypeForm, [views.BROWSE_NAV_ITEMS, views.EVENT_NAV_ITEMS], ["Wydarzenia", "Rodzaje wydarzeń"], 2).as_view(), login_url='/'), name="add_event_type"),
     path("add/activity_type", login_required(views.get_concrete_addView("Dodaj rodzaj aktywności", forms.ActivityTypesForm, [views.BROWSE_NAV_ITEMS, views.ACTIVITIES_NAV_ITEMS], ["Aktywności", "Przeglądaj"], 2).as_view(), login_url='/'), name="add_activity_type"),
-    path("person/<str:fpk>/add_family", login_required(views.AddFamilyView.as_view(), login_url='/'), name="add_family"),
+    path("person/<str:fpk>/add_family", login_required(views.AddFamiliesView.as_view(), login_url='/'), name="add_family"),
+    path("person/<str:fpk>/add_family_member/<str:spk>/", login_required(views.FamilyMemberBulkAddView.as_view(), login_url='/'), name="add_family_members"),
     path("person/<str:fpk>/family", login_required(views.PersonFamilyView.as_view(), login_url='/'), name="rodzinx"),
     path("person/<str:fpk>/data", login_required(views.PersonDataView.as_view(), login_url='/'), name="person_data"),
     path("person/<str:fpk>/roles", login_required(views.PersonRolesView.as_view(), login_url='/'), name="person_roles"),
@@ -121,5 +122,8 @@ urlpatterns = [
     path("teacher_roles/<str:fpk>/delete", login_required(views.DeleteTeacherRoleView.as_view(), login_url='/'), name="delete_teacher_role"),
     path("admin_settings/attendees", login_required(views.BrowseStudentRolesView.as_view(), login_url='/'), name="browse_student_roles"),
     path("add_student_role", login_required(views.get_concrete_addView("Dodaj rolę zezwalającą na uczestnictwo w kursach", forms.StudentRolesForm, [views.SETTINGS_NAV_ITEMS], ["Role kursantów"]).as_view(), login_url='/'), name="add_student_role"),
-    path("student_roles/<str:fpk>/delete", login_required(views.DeleteStudentRoleView.as_view(), login_url='/'), name="delete_student_role")
+    path("student_roles/<str:fpk>/delete", login_required(views.DeleteStudentRoleView.as_view(), login_url='/'), name="delete_student_role"),
+    path("admin_settings/family_members", login_required(views.BrowseFamilyMembersView.as_view(), login_url='/'), name="browse_family_members"),
+    path("add_family_member", login_required(views.get_concrete_addView("Dodaj rodzaj członka rodziny", forms.FamilyMembersForm, [views.SETTINGS_NAV_ITEMS], ["Rodzaje członków rodziny"]).as_view(), login_url='/'), name="add_student_role"),
+    path("family_members/<str:fpk>/delete", login_required(views.get_delete(models.FamilyMembers).as_view(), login_url='/'), name="delete_family_member")
 ]

@@ -26,12 +26,20 @@
   </head>
   {% if request.user.is_authenticated %}
   <!-- Add user breadcrumb --> 
+<div class="btn-group">
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/logout">Wyloguj</a></li>
       <li class="breadcrumb-item active" aria-current="page">{{request.user.username}}</li>
     </ol>
   </nav>
+  <div class="mx-5">
+    <div class="mx-2">
+      <a href="/browse/people">Przeglądaj</a>
+      <a href="/admin_settings/teachers">Ustawienia</a>
+    </div>
+  </div>
+</div>
   {% endif %}
 </html>
 {% endblock head %}

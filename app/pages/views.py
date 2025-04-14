@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import ValidationError
 from .forms import ModelForm, PersonForm, RoleForm, ProjectForm, UploadFileForm, EventForm, EventTypeForm, CategoriesForm, GroupsForm, ViewFamiliesForm, CoursesForm, SemesterForm, AttendeesForm, AttendeesFormEdit, SemesterFormEdit, ActivityTypesForm, RolesActivityTypesForm, CodesForm, SemesterDatesForm, PeopleSemestersForm, ActivitiesForm, ActivitiesViewForm, ConsentsForm, GrantRoleForm, EditAttendanceFromDate, EditAttendanceFromPerson, PersonPeopleEventsForm, EventPeopleEventsForm, PeopleFilter, FamilyFilter, ActivityFilter, CourseFilter, EventFilter, PersonCourseFilter, PersonActivitiesFilter, CourseSemesterFilter, SemesterDateFilter, CodeFilter, ReportForm, ShowPersonForm
-from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, PeopleRoles, Courses, Semesters, Attendees, SelectAttendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, Attendance, PeopleSemesters, Activities, Consents, PeopleEvents, Genders, AttendanceTypes
+from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, PeopleRoles, Courses, Semesters, Attendees, SelectAttendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, Attendance, PeopleSemesters, Activities, Consents, PeopleEvents, Genders, AttendanceTypes, FamilyMembers
 from django.db import connection, IntegrityError
 from django.db.models import Q, Model, Value, CharField, Count, Sum
 from django.db.models.functions import Concat
@@ -215,7 +215,8 @@ SETTINGS_NAV_ITEMS = [
     NavItem("Role nauczycieli", "/admin_settings/teachers"),
     NavItem("Role kursantów", "/admin_settings/attendees"),
     NavItem("Płcie", "/admin_settings/genders"),
-    NavItem("Rodzaje obecności", "/admin_settings/attendance_types")
+    NavItem("Rodzaje obecności", "/admin_settings/attendance_types"),
+    NavItem("Rodzaje członków rodziny", "/admin_settings/family_members")
 ]
 
 
@@ -389,8 +390,9 @@ class BrowseFamiliesView(BrowseView):
     model = ViewFamilies
     active_nav_items = ["Rodziny"]
     header_cells = [
-        HeaderCell("Rodzic", 0, "th0", True),
-        HeaderCell("Dziecko", 1, "th1", True),
+        HeaderCell("Osoba", 0, "th0", True),
+        HeaderCell("Stosunek osób", 1, "th1", True),
+        HeaderCell("Druga osoba", 2, "th2", True),
         HeaderCell("Opcje", None, None, False)
     ]
     filter_form = FamilyFilter
@@ -398,6 +400,7 @@ class BrowseFamiliesView(BrowseView):
     def _get_fields(self, objects):
         return [HTMLRow([
                 DataCell('data', o.pid_parent),
+                DataCell('data', o.family_member),
                 DataCell('data', o.pid_child),
                 DataCell('link', [Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.pid_parent.id}/family/{o.pid_child.id}/delete")])
                 ]) for o in objects]
@@ -631,6 +634,29 @@ class BrowseAttendanceTypesView(BrowseView):
 
     def _get_buttons(self):
         return [Button("Dodaj rodzaj aktywności", "/add_attendance_type")]
+
+    def _get_objects(self, query, **kwargs):
+        return self.model.objects.all()
+
+
+class BrowseFamilyMembersView(BrowseView):
+    model = FamilyMembers
+    active_nav_items = ["Rodzaje członków rodziny"]
+    header_cells = [
+        HeaderCell("Rodzaj obecności", 0, "th0", True),
+        HeaderCell("Opcje", None, None, False)
+    ]
+    nav_bars = [SETTINGS_NAV_ITEMS]
+
+    def _get_fields(self, objects):
+        return [HTMLRow([
+                DataCell('data', o),
+                DataCell('link', [Link("Usuń", "btn btn-danger btn-sm", f"family_members/{o.id}/delete")])
+                ], id=o.id
+        ) for o in objects]
+
+    def _get_buttons(self):
+        return [Button("Dodaj rodzaj członka rodziny", "/add_family_member")]
 
     def _get_objects(self, query, **kwargs):
         return self.model.objects.all()
@@ -1044,6 +1070,23 @@ class AddSemesterDatesView(AddMulPKView):
         return context
 
 
+class AddFamiliesView(AddMulPKView):
+    initial_pks = {"fpk": "pid_parent"}
+    title = "Dodaj członka rodziny"
+    form = ViewFamiliesForm
+    nav_bars = [BROWSE_NAV_ITEMS, PERSON_NAV_ITEMS]
+    active_nav_items = ["Osoby", "Rodzina"]
+
+    def _get_instances(self, **kwargs):
+        return [People.objects.get(id=kwargs['fpk'])]
+
+    def expand_context(self, context: dict, **kwargs):
+        context.update({
+            'object': People.objects.get(id=kwargs['fpk'])
+            })
+        return context
+
+
 class AddSemesterToPeopleSemestersView(AddMulPKView):
     initial_pks = {"fpk": "course_id", "spk": "semester_id"}
     title = "Dodaj uczestnika"
@@ -1143,31 +1186,31 @@ class AddConsentView(AddMulPKView):
         return context
 
 
-class AddFamilyView(TemplateView, NavigationBar):
-    template_name = "add_family.html"
-    nav_bars = [BROWSE_NAV_ITEMS, PERSON_NAV_ITEMS]
-    active_nav_items = ['Osoby', 'Rodzina']
+# class AddFamilyView(TemplateView, NavigationBar):
+#     template_name = "add_family.html"
+#     nav_bars = [BROWSE_NAV_ITEMS, PERSON_NAV_ITEMS]
+#     active_nav_items = ['Osoby', 'Rodzina']
 
-    def get(self, request, fpk):
-        person = People.objects.get(id=fpk)
-        families = ViewFamilies.objects.filter(Q(pid_parent=fpk) | Q(pid_child=fpk)).values_list("pid_parent", "pid_child")
-        families_ids = list(set([pid for x in families for pid in x]))
-        people = People.objects.exclude(id__in=families_ids)
-        nav_bars = self._set_nav_bars([person], fpk=fpk)
-        # TODO nie można dodać osób już będących w rodzinie z person
-        context = {'people': people, 'nav_bars': nav_bars}
-        return render(request, self.template_name, context)
+#     def get(self, request, fpk):
+#         person = People.objects.get(id=fpk)
+#         families = ViewFamilies.objects.filter(Q(pid_parent=fpk) | Q(pid_child=fpk)).values_list("pid_parent", "pid_child")
+#         families_ids = list(set([pid for x in families for pid in x]))
+#         people = People.objects.exclude(id__in=families_ids)
+#         nav_bars = self._set_nav_bars([person], fpk=fpk)
+#         # TODO nie można dodać osób już będących w rodzinie z person
+#         context = {'people': people, 'nav_bars': nav_bars}
+#         return render(request, self.template_name, context)
 
-    def post(self, request, fpk):
-        if request.method == 'POST':
-            parent = People.objects.get(id=fpk)
-            child = People.objects.get(id=request.POST.__getitem__('member'))
-            if request.POST.__getitem__('relationship') == 'parent':
-                parent, child = child, parent
-            elif request.POST.__getitem__('relationship') == 'child':
-                pass
-            child.parents.add(parent)
-            return redirect(f'/person/{fpk}/family')
+#     def post(self, request, fpk):
+#         if request.method == 'POST':
+#             parent = People.objects.get(id=fpk)
+#             child = People.objects.get(id=request.POST.__getitem__('member'))
+#             if request.POST.__getitem__('relationship') == 'parent':
+#                 parent, child = child, parent
+#             elif request.POST.__getitem__('relationship') == 'child':
+#                 pass
+#             child.parents.add(parent)
+#             return redirect(f'/person/{fpk}/family')
 
 
 class RoleDataView(ConcreteBrowseView):
@@ -1299,6 +1342,33 @@ class RoleBulkAddView(BulkAddView):
             ]
             PeopleRoles.objects.bulk_create(people)
         return redirect(f"/roles/{kwargs['fpk']}/data")
+
+
+class FamilyMemberBulkAddView(BulkAddView):
+    active_nav_items = ["Osoby", "Rodzina"]
+    nav_bars = [BROWSE_NAV_ITEMS, PERSON_NAV_ITEMS]
+
+    def _get_excluded(self, **kwargs):
+        ex = ViewFamilies.objects.filter(pid_parent=kwargs['fpk'])
+        ids = [vf.pid_child.id for vf in ex]
+        ids.append(kwargs['fpk'])
+        return {'id__in': ids}
+
+    def _get_object(self, **kwargs):
+        return [People.objects.get(id=kwargs['fpk'])]
+
+    def post(self, request, **kwargs):
+        if request.POST.get('actionType') == "bulkAdd":
+            ids = request.POST.get('ids').split(',')
+            people = [
+                ViewFamilies(
+                    pid_parent=People.objects.get(id=kwargs['fpk']),
+                    family_member=FamilyMembers.objects.get(id=kwargs['spk']),
+                    pid_child=People.objects.get(id=id)
+                ) for id in ids
+            ]
+            ViewFamilies.objects.bulk_create(people)
+        return redirect(f"/person/{kwargs['fpk']}/family")
 
 
 class SemesterBulkAddView(BulkAddView):
@@ -1632,42 +1702,57 @@ class PersonConsentsView(ConcreteBrowseView):
 
 class PersonFamilyView(ConcreteBrowseView):
     active_nav_items = ["Osoby", "Rodzina"]
-    parents_header_cells = [
-        HeaderCell("Rodzic", 0, "th0", True),
-        HeaderCell("Opcje", None, None, False)
-    ]
-    children_header_cells = [
-        HeaderCell("Dziecko", 0, "th1", True),
+    header_cells = [
+        HeaderCell("Osoba", 0, "th0", True),
+        HeaderCell("Relacja do osoby", 1, "th1", True),
         HeaderCell("Opcje", None, None, False)
     ]
     nav_bars = [BROWSE_NAV_ITEMS, PERSON_NAV_ITEMS]
     filter_form = PeopleFilter
 
     def _get_buttons(self, **kwargs):
-        return [Button("Dodaj członka rodziny", f"/person/{kwargs['fpk']}/add_family")]
+        family_members = FamilyMembers.objects.all()
+        buttons = [Button(f"Dodaj wielu {fm.name}", f"/person/{kwargs['fpk']}/add_family_member/{fm.id}/") for fm in family_members]
+        buttons = [(Button(f"Dodaj członka rodziny", f"/person/{kwargs['fpk']}/add_family"))] + buttons
+        return buttons
 
     def _get_instances(self, **kwargs):
         return [People.objects.get(id=kwargs['fpk'])]
 
-    def _get_tables(self, instances, query, **kwargs):
+    def _get_fields(self, objects, **kwargs):
+        return [HTMLRow([
+                DataCell('data', o.pid_child),
+                DataCell('data', o.family_member),
+                DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.pid_child.id}/data"),
+                                  Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.pid_child.id}/delete")])
+                ], onclick=f"/person/{o.pid_child.id}/data", id=o.pid_child) for o in objects]
+
+    def _get_objects(self, instance, query, **kwargs):
+        parent=People.objects.get(id=kwargs['fpk'])
         q = query.pop('q') if 'q' in query else ''
         query['gender__name'] = query.pop('gender') if 'gender' in query.keys() else ""
         kwargs = format_filter_query(query)
-        person = instances[0]
-        parents = person.parents.annotate(full_name=Concat('name', Value(' '), 'surname', Value(' '), 'pcode', output_field=CharField())).filter(Q(full_name__icontains=q), **kwargs)
-        children = person.people_set.annotate(full_name=Concat('name', Value(' '), 'surname', Value(' '), 'pcode', output_field=CharField())).filter(Q(full_name__icontains=q), **kwargs)
-        p_fields = [HTMLRow([
-                DataCell('data', o),
-                DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.id}/data"),
-                                  Link("Usuń", "btn btn-danger btn-sm", f"/person/{o.id}/family/{person.id}/delete")])
-                ], onclick=f"/person/{o.id}/data", id=[o.id, person.id]) for o in parents]
-        c_fields = [HTMLRow([
-                DataCell('data', o),
-                DataCell('link', [Link("Zobacz", "btn btn-info btn-sm", f"/person/{o.id}/data"),
-                                  Link("Usuń", "btn btn-danger btn-sm", f"/person/{person.id}/family/{o.id}/delete")])
-                ], onclick=f"/person/{o.id}/data", id=[person.id, o.id]) for o in children]
-        return [HTMLTable(header_cells=self.parents_header_cells, rows=p_fields, body_name="parents_tbody"),
-                HTMLTable(header_cells=self.children_header_cells, rows=c_fields, body_name="children_tbody")]
+        return ViewFamilies.objects.filter(
+            (Q(pid_child__mail__isnull=True) & (Q(pid_child__name__icontains=q) |
+                                     Q(pid_child__surname__icontains=q) |
+                                     Q(pid_child__phone_nr__icontains=q) |
+                                     Q(pid_child__country_code__icontains=q) |
+                                     Q(pid_child__is_adult__icontains=q) |
+                                     Q(pid_child__gender__name__icontains=q) |
+                                     Q(pid_child__description__icontains=q) |
+                                     Q(pid_child__notes__icontains=q))) |
+            Q(pid_child__name__icontains=q) |
+            Q(pid_child__surname__icontains=q) |
+            Q(pid_child__phone_nr__icontains=q) |
+            Q(pid_child__country_code__icontains=q) |
+            Q(pid_child__is_adult__icontains=q) |
+            Q(pid_child__gender__name__icontains=q) |
+            (Q(pid_child__mail__isnull=False) & Q(pid_child__mail__icontains=q)) |
+            Q(pid_child__description__icontains=q) |
+            Q(pid_child__notes__icontains=q),
+            pid_parent=parent,
+            **kwargs
+            )
 
     def _get_MtM_instances(self, ids, **kwargs):
         ids = [id.replace('[', '').replace(']', '') for id in ids]

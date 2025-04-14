@@ -15,8 +15,8 @@ LAN_PLP_GENDER = "Płeć"
 LAN_PLP_COUNTRY = "Kraj"
 LAN_PLP_DESC = "Cecha charakterystyczna"
 LAN_PLP_NOTES = "Uwagi"
-LAN_FAM_PARENT = "Rodzic"
-LAN_FAM_CHILD = "Dziecko"
+LAN_FAM_PARENT = "Pierwsza osoba"
+LAN_FAM_CHILD = "Wybrana osoba"
 LAN_ROL_NAME = "Nazwa roli"
 LAN_ROL_PLP = "Role osób"
 LAN_PRO_NAME = "Nazwa projektu"
@@ -374,6 +374,7 @@ class Roles(models.Model):
 class Families(models.Model):
     id = models.BigAutoField(primary_key=True)
     pid_parent = models.ForeignKey('People', models.CASCADE, verbose_name=LAN_FAM_PARENT, db_column='pid_parent', related_name='families_pid_parent_set')
+    family_member = models.ForeignKey('FamilyMembers', models.CASCADE, verbose_name="Wybrana osoba to", db_column='family_member', related_name='family_member_id')
     pid_child = models.ForeignKey('People', models.CASCADE, verbose_name=LAN_FAM_CHILD, db_column='pid_child', related_name='families_pid_child_set')
 
     class Meta:
@@ -386,9 +387,22 @@ class Families(models.Model):
         ]
 
 
+class FamilyMembers(models.Model):
+    id = models.SmallAutoField(primary_key=True)
+    name = models.CharField(verbose_name="Nazwa", db_column='name', max_length=50, unique=True)
+
+    class Meta:
+        managed = False
+        db_table = 'family_members'
+
+    def __str__(self):
+        return self.name
+
+
 class ViewFamilies(models.Model):
     id = models.IntegerField(models.CASCADE, db_column='dummy', primary_key=True, default=1)
     pid_parent = models.ForeignKey('People', models.CASCADE, verbose_name=LAN_FAM_PARENT, db_column='pid_parent', related_name='vfamilies_pid_parent_set')
+    family_member = models.ForeignKey('FamilyMembers', models.CASCADE, verbose_name="Wybrana osoba to", db_column='family_member', related_name="vfamily_member_id")
     pid_child = models.ForeignKey('People', models.CASCADE, verbose_name=LAN_FAM_CHILD, db_column='pid_child', related_name='vfamilies_pid_child_set')
 
     class Meta:
@@ -399,6 +413,9 @@ class ViewFamilies(models.Model):
                 fields=['pid_parent', 'pid_child'], name='vunique_pid_parent_pid_child_combination'
             )
         ]
+
+    def __str__(self):
+        return self.name
 
 
 class SemesterDates(models.Model):
