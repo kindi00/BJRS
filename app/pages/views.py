@@ -2225,11 +2225,11 @@ class EventsAttendeesView(ConcreteBrowseView, NavigationBar):
 
     def get(self, request, fpk):
         obj = Events.objects.get(id=fpk)
-        no_attendees = Events.objects.values('attendees__group__category_id').annotate(no_attendees=Sum('attendees__no_attendees')).order_by('-no_attendees').filter(id=fpk).first()
+        # no_attendees = Events.objects.values('attendees__grat__group__category_id').annotate(no_attendees=Sum('attendees__no_attendees')).order_by('-no_attendees').filter(id=fpk).first()
         attendees = self.group_attendees(SelectAttendees.objects.filter(event=fpk))
         self._activate_nav_item()
         nav_bars = self._set_nav_bars([obj], 2, fpk=fpk)
-        context = {'object': obj, 'attendees': attendees, 'nav_bars': nav_bars, 'no_attendees': no_attendees}
+        context = {'object': obj, 'attendees': attendees, 'nav_bars': nav_bars, 'no_attendees': 'no_attendees'}
         return render(request, self.template_name, context)
 
     def group_attendees(self, attendees):

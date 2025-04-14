@@ -24,14 +24,13 @@ LAN_PRO_DESC = "Opis projektu"
 
 
 class Attendees(models.Model):
-    id = models.IntegerField(primary_key=True, db_column="dummy", default=1)
+    id = models.SmallAutoField(primary_key=True, db_column="id")
     event = models.ForeignKey('Events', models.DO_NOTHING, db_column='event_id', verbose_name="Wydarzenie")
-    group = models.ForeignKey('Groups', models.DO_NOTHING, db_column='group_id', verbose_name="Grupa")
     no_attendees = models.IntegerField(db_column='no_atendees', verbose_name="Liczba uczestników", validators=[MinValueValidator(0, "Liczba uczestników nie może być mniejsza niż 0")])
 
     class Meta:
         managed = False
-        db_table = 'view_atendees'
+        db_table = 'atendees'
         constraints = [
             models.CheckConstraint(
                 name="non_negative_no_attendees",
@@ -41,7 +40,17 @@ class Attendees(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"Uczestnicy z grupy \"{self.group}\" na wydarzeniu \"{self.event}\""
+        return f"Uczestnicy wydarzenia \"{self.event}\""
+
+
+class GRAT(models.Model):
+    id = models.IntegerField(primary_key=True, db_column="dummy", default=1)
+    group_id = models.ForeignKey('Groups', models.DO_NOTHING, db_column='group_id', verbose_name='Grupa')
+    attendees_id = models.ForeignKey('Attendees', models.DO_NOTHING, db_column='attendees_id', verbose_name='Uczestnicy')
+
+    class Meta:
+        managed = False
+        db_table = 'view_atendees'
 
 
 class ActivityTypes(models.Model):
