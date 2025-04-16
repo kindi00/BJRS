@@ -288,7 +288,6 @@ class CoursesForm(UpdateableForm):
             self.fields['teacher_id'].queryset = People.objects.filter(
                 roles__id__in=j['teacher_roles']['ids']
             )
-            print(self.fields['teacher_id'])
 
     def clean(self):
         self.cleaned_data['name'] = self.cleaned_data['name'].title()
