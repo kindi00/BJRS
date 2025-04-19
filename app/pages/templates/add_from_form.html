@@ -3,7 +3,39 @@
 
 {% block content %}
 {{ dict|json_script:"dict" }}
+{{ allowed_people|json_script:"allowed_people" }}
+{{ allowed_activities|json_script:"allowed_activities" }}
 <script>
+    function setAllowedPeople() {
+        const currentActivity = parseInt(document.getElementById('id_activity_type_id').value);
+    	const allowed_people = JSON.parse(document.getElementById('allowed_people').textContent);
+        var people = document.getElementById('id_person_id');
+        if (isNaN(currentActivity)) {
+            for (var i=0; i<people.length; i++) {
+                people[i].disabled = 0;
+            }
+        }
+        else {
+            for (var i=0; i<people.length; i++) {
+                people[i].disabled = allowed_people[currentActivity].includes(parseInt(people[i].value)) ? 0 : 1;
+            }
+        }
+    }
+    function setAllowedActivities() {
+        const currentPerson = parseInt(document.getElementById('id_person_id').value);
+    	const allowed_activities = JSON.parse(document.getElementById('allowed_activities').textContent);
+        var activities = document.getElementById('id_activity_type_id');
+        if (isNaN(currentPerson)) {
+            for (var i=0; i<activities.length; i++) {
+                activities[i].disabled = 0;
+            }
+        }
+        else {
+            for (var i=0; i<activities.length; i++) {
+                activities[i].disabled = allowed_activities[currentPerson].includes(parseInt(activities[i].value)) ? 0 : 1;
+            }
+        }
+    }
     function toggleDisabled(_checked, _ids) {
         for (let i = 0; i < _ids.length; i++) {
             let e = document.getElementById(_ids[i]);

@@ -434,6 +434,8 @@ class ActivitiesForm(UpdateableForm):
                     plp_w_roles__in=People.objects.filter(id=self.initial['person_id'])
                 )
             )
+        self.fields['activity_type_id'].widget.attrs.update({'onchange': 'setAllowedPeople()'})
+        self.fields['person_id'].widget.attrs.update({'onchange': 'setAllowedActivities()'})
         self.fields['notes'].widget = Textarea(attrs={'name': 'notes_body', 'class': 'form-control', 'rows': '3'})
         if 'instance' not in kwargs.keys() or not kwargs['instance'].course_id:
             self.disable(['course_id', 'semester_id'])

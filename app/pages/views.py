@@ -975,8 +975,18 @@ class AddActivityView(AddView):
             if s.course_id.id not in d.keys():
                 d[s.course_id.id] = []
             d[s.course_id.id].append(s.id)
+        # allowed_activities = 
+        allowed_people = ActivityTypes.objects.values('id', 'allowed_roles__plp_w_roles__id')
+        ap = {a.id: [] for a in ActivityTypes.objects.all()}
+        aa = {p.id: [] for p in People.objects.all()}
+        for row in allowed_people:
+            if row['id'] is not None and row['allowed_roles__plp_w_roles__id'] is not None:
+                aa[row['allowed_roles__plp_w_roles__id']].append(row['id'])
+                ap[row['id']].append(row['allowed_roles__plp_w_roles__id'])
         context.update({
-            'dict': d
+            'dict': d,
+            'allowed_activities': aa,
+            'allowed_people': ap
             })
         return context
 
