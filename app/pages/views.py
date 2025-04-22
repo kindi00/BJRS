@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import ValidationError
 from .forms import ModelForm, PersonForm, RoleForm, ProjectForm, UploadFileForm, EventForm, EventTypeForm, CategoriesForm, GroupsForm, ViewFamiliesForm, CoursesForm, SemesterForm, AttendeesForm, AttendeesFormEdit, SemesterFormEdit, ActivityTypesForm, RolesActivityTypesForm, CodesForm, SemesterDatesForm, PeopleSemestersForm, ActivitiesForm, ActivitiesViewForm, ConsentsForm, GrantRoleForm, EditAttendanceFromDate, EditAttendanceFromPerson, PersonPeopleEventsForm, EventPeopleEventsForm, PeopleFilter, FamilyFilter, ActivityFilter, CourseFilter, EventFilter, PersonCourseFilter, PersonActivitiesFilter, CourseSemesterFilter, SemesterDateFilter, CodeFilter, ReportForm, ShowPersonForm
-from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, PeopleRoles, Courses, Semesters, Attendees, SelectAttendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, Attendance, PeopleSemesters, Activities, Consents, PeopleEvents, Genders, AttendanceTypes, FamilyMembers
+from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, PeopleRoles, Courses, Semesters, Attendees, SelectAttendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, Attendance, PeopleSemesters, Activities, Consents, PeopleEvents, Genders, AttendanceTypes, FamilyMembers, GRAT
 from django.db import connection, IntegrityError
 from django.db.models import Q, Model, Value, CharField, Count, Sum
 from django.db.models.functions import Concat
@@ -847,11 +847,11 @@ class DeleteSemesterView(DeleteTwoPKView):
 
 class DeleteAttendeesView(DeleteTwoPKView):
     def get_instance(self, fpk, spk) -> Model:
-        return Attendees.objects.filter(event=fpk, group=spk)
+        return Attendees.objects.filter(event=fpk, id=spk)
 
     def get_msg(self, fpk, spk) -> str:
-        attendees = Attendees.objects.get(event=fpk, group=spk)
-        return f"Uczestnicy \"{attendees.event}\" z grupy \"{attendees.group}\" w liczbie \"{attendees.no_attendees}\""
+        attendees = Attendees.objects.get(event=fpk, id=spk)
+        return f"Uczestnicy \"{attendees.event}\" w liczbie \"{attendees.no_attendees}\""
 
 
 class DeletePeopleRolesView(DeleteTwoPKView):
@@ -975,7 +975,6 @@ class AddActivityView(AddView):
             if s.course_id.id not in d.keys():
                 d[s.course_id.id] = []
             d[s.course_id.id].append(s.id)
-        # allowed_activities = 
         allowed_people = ActivityTypes.objects.values('id', 'allowed_roles__plp_w_roles__id')
         ap = {a.id: [] for a in ActivityTypes.objects.all()}
         aa = {p.id: [] for p in People.objects.all()}
@@ -1194,33 +1193,6 @@ class AddConsentView(AddMulPKView):
             'object': People.objects.get(id=kwargs['fpk'])
             })
         return context
-
-
-# class AddFamilyView(TemplateView, NavigationBar):
-#     template_name = "add_family.html"
-#     nav_bars = [BROWSE_NAV_ITEMS, PERSON_NAV_ITEMS]
-#     active_nav_items = ['Osoby', 'Rodzina']
-
-#     def get(self, request, fpk):
-#         person = People.objects.get(id=fpk)
-#         families = ViewFamilies.objects.filter(Q(pid_parent=fpk) | Q(pid_child=fpk)).values_list("pid_parent", "pid_child")
-#         families_ids = list(set([pid for x in families for pid in x]))
-#         people = People.objects.exclude(id__in=families_ids)
-#         nav_bars = self._set_nav_bars([person], fpk=fpk)
-#         # TODO nie można dodać osób już będących w rodzinie z person
-#         context = {'people': people, 'nav_bars': nav_bars}
-#         return render(request, self.template_name, context)
-
-#     def post(self, request, fpk):
-#         if request.method == 'POST':
-#             parent = People.objects.get(id=fpk)
-#             child = People.objects.get(id=request.POST.__getitem__('member'))
-#             if request.POST.__getitem__('relationship') == 'parent':
-#                 parent, child = child, parent
-#             elif request.POST.__getitem__('relationship') == 'child':
-#                 pass
-#             child.parents.add(parent)
-#             return redirect(f'/person/{fpk}/family')
 
 
 class RoleDataView(ConcreteBrowseView):
@@ -1908,34 +1880,31 @@ def get_concrete_EditDataView(_extend_file: str, _model: Model, _form: ModelForm
     return ConcreteEditDataView
 
 
-class EditDataTwoPKView(TemplateView):
+class ChangeNoAttendeesView(TemplateView, NavigationBar):
     template_name = "add_from_form.html"
-    extend_file: str = ...
-    form: ModelForm = ...
+    extend_file = "browse/main.html"
+    nav_bars = [BROWSE_NAV_ITEMS, EVENT_NAV_ITEMS, CON_EVENT_NAV_ITEMS]
+    active_nav_items = ["Wydarzenia", "Przeglądaj", "Szczegóły o uczestnikach"]
+    form = AttendeesForm
 
-    def get(self, request, fpk, spk):
-        instance = self.get_instance(fpk, spk)
+    def get(self, request, **kwargs):
+        instance = Attendees.objects.get(event_id=kwargs['fpk'], id=kwargs['spk'])
+        self._activate_nav_item()
+        nav_bars = self._set_nav_bars([Events.objects.get(id=kwargs['fpk'])], 2, **kwargs)
         form = self.form(instance=instance)
-        context = {'object': instance, 'form': form, "extend_file": self.extend_file}
+        context = {'object': instance, 'form': form, "extend_file": self.extend_file, 'nav_bars': nav_bars}
         return render(request, self.template_name, context)
 
     def post(self, request, fpk, spk):
-        ...
-
-    def get_instance(self, fpk, spk):
-        ...
-
-
-class ChangeNoAttendeesView(EditDataTwoPKView):
-    extend_file = "browse/main.html"
-    form = AttendeesFormEdit
-
-    def get_instance(self, fpk, spk):
-        return Attendees.objects.get(event_id=fpk, group_id=spk)
-
-    def post(self, request, fpk, spk):
-        Attendees.objects.filter(event=fpk, group=spk).update(no_attendees=request.POST.__getitem__('no_attendees'))
-        return redirect(request.POST.get('referer'))
+        request.POST._mutable = True
+        request.POST.update({'event': fpk})
+        instance = Attendees.objects.get(id=spk)
+        form = self.form(data=request.POST, instance=instance)
+        if form.is_valid():
+            form.save(instance=instance)
+            return redirect(request.POST.get('referer'))
+        else:
+            return render(request, self.template_name, {'form': form})
 
 
 class ImportView(TemplateView, NavigationBar):
@@ -2221,7 +2190,6 @@ class ImportSemestersView(ImportView):
                 ...
             except ValidationError:
                 errors.append("Semestr z tą nazwą już istnieje")
-            print(errors)
             if errors:
                 all_errors[i+1] = errors.copy()
         Semesters.objects.bulk_create(semesters_list)
@@ -2236,18 +2204,23 @@ class EventsAttendeesView(ConcreteBrowseView, NavigationBar):
     def get(self, request, fpk):
         obj = Events.objects.get(id=fpk)
         # no_attendees = Events.objects.values('attendees__grat__group__category_id').annotate(no_attendees=Sum('attendees__no_attendees')).order_by('-no_attendees').filter(id=fpk).first()
-        attendees = self.group_attendees(SelectAttendees.objects.filter(event=fpk))
+        categories = Categories.objects.all()
+        attendees = self.group_attendees(GRAT.objects.filter(attendees_id__event=fpk).select_related(), categories)
         self._activate_nav_item()
         nav_bars = self._set_nav_bars([obj], 2, fpk=fpk)
-        context = {'object': obj, 'attendees': attendees, 'nav_bars': nav_bars, 'no_attendees': 'no_attendees'}
+        no_attendees = sum([a[0] for a in attendees.values()])
+        context = {'object': obj, 'attendees': attendees, 'nav_bars': nav_bars, 'no_attendees': no_attendees, 'categories' : categories}
         return render(request, self.template_name, context)
 
-    def group_attendees(self, attendees):
+    def group_attendees(self, attendees, categories):
         sorted = {}
         for atendee in attendees:
-            if atendee.category not in sorted.keys():
-                sorted[atendee.category] = []
-            sorted[atendee.category].append(atendee)
+            if atendee.attendees_id.id not in sorted.keys():
+                sorted[atendee.attendees_id.id] = [atendee.attendees_id.no_attendees] + ['' for c in categories]
+            for i, c in enumerate(categories, start=1):
+                if c.id == atendee.group_id.category.id:
+                    sorted[atendee.attendees_id.id][i] = atendee.group_id.name
+                    break
         return sorted
 
 

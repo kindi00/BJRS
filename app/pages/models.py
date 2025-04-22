@@ -42,11 +42,15 @@ class Attendees(models.Model):
     def __str__(self) -> str:
         return f"Uczestnicy wydarzenia \"{self.event}\""
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        return self.id
+
 
 class GRAT(models.Model):
     id = models.IntegerField(primary_key=True, db_column="dummy", default=1)
-    group_id = models.ForeignKey('Groups', models.DO_NOTHING, db_column='group_id', verbose_name='Grupa')
-    attendees_id = models.ForeignKey('Attendees', models.DO_NOTHING, db_column='attendees_id', verbose_name='Uczestnicy')
+    group_id = models.ForeignKey('Groups', models.CASCADE, db_column='group_id', verbose_name='Grupa')
+    attendees_id = models.ForeignKey('Attendees', models.CASCADE, db_column='attendee_id', verbose_name='Uczestnicy')
 
     class Meta:
         managed = False

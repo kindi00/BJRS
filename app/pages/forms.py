@@ -330,10 +330,27 @@ class AttendeesForm(UpdateableForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.disable(['event'])
         cat = Categories.objects.all()
         for c in cat:
-            self.fields[f'c_{c.id}'] = ChoiceField(label=c.name)
-            self.fields[f'c_{c.id}'].queryset = Groups.objects.filter(category=c)
+            if 'instance' in kwargs.keys():
+                gr = GRAT.objects.get(attendees_id=kwargs['instance'], group_id__category_id=c)
+                self.fields[f'c_{c.id}'] = ModelChoiceField(label=c.name, queryset=Groups.objects.filter(category=c), initial=gr.group_id)
+            else:
+                self.fields[f'c_{c.id}'] = ModelChoiceField(label=c.name, queryset=Groups.objects.filter(category=c))
+
+    def save(self, *args, **kwargs):
+        at = ...
+        if 'instance' in kwargs.keys():
+            at = kwargs['instance']
+            at.no_attendees = self.cleaned_data['no_attendees']
+            at = at.save()
+        else:
+            at = Attendees(event=self.cleaned_data['event'], no_attendees=self.cleaned_data['no_attendees']).save()
+        for k, v in self.cleaned_data.items():
+            if k != 'event' and k != 'no_attendees':
+                GRAT.objects.filter(group_id__category_id=v.category_id, attendees_id=Attendees.objects.get(id=at)).delete()
+                GRAT(id=1, group_id=v, attendees_id=Attendees.objects.get(id=at)).save()
 
 
 class AttendeesFormEdit(UpdateableForm):

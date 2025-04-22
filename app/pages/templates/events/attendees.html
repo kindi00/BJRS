@@ -2,39 +2,37 @@
 
 {% block content %}
 {{ block.super }}
-<div>
-    <h4 id="foo">Całkowita liczba uczestników: {{ no_attendees.no_attendees }}</h4>
-</div>
 
-<div>
+<div class="container-fluid">
+    <div>
+        <h4 id="foo">Całkowita liczba uczestników: {{ no_attendees }}</h4>
+    </div>
     <table style="width:100%" id="browse_table"class="table table-hover table-bordered border-secondary">
         <thead class="table-info">
             <tr>
-                <th style="width: 35%;">Kategoria<a id="th0"></a></th>
-                <th style="width: 35%;">Grupa<a id="th1"></a></th>
                 <th>Liczba uczestników</th>
+                {% for category in categories %}
+                <th>{{ category }}</th>
+                {% endfor %}
                 <th>Opcje</th>
-              </tr>
+            </tr>
         </thead>
         <tbody class="table-light">
-            {% for category, groups in attendees.items %}
-                <tr>
-                    <td rowspan="{{groups|length|add:1}}">{{ category }}</td>
-                </tr>
-                {% for group in groups %}
-                <tr>
-                <td>{{ group.group }}</td>
-                <td>{{ group.no_attendees }}</td>
-                    <td>
-                        <a class="btn btn-primary btn-sm" href="/events/{{object.id}}/attendees/{{group.group.id}}/edit">Zmień liczbę uczestników</a> 
-                        <a class="btn btn-danger btn-sm" href="/attendees/{{object.id}}/{{group.group.id}}/delete">Usuń</a>
-                    </td>
-                </tr>
+            {% for id, row in attendees.items %}
+            <tr>
+                {% for data in row %}
+                    <td>{{ data }}</td>
                 {% endfor %}
-              {% endfor %}
+                <td>
+                    <a class="btn btn-primary btn-sm" href="/events/{{object.id}}/attendees/{{id}}/edit">Edytuj</a> 
+                    <a class="btn btn-danger btn-sm" href="/attendees/{{object.id}}/{{id}}/delete">Usuń</a>
+                </td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
-    <h5><a class="btn btn-primary" href="/events/{{object.id}}/attendees/add">Dodaj grupę uczestników</a></h5>
+    <div class="btn-group">
+        <h5><a class="btn btn-primary" href="/events/{{object.id}}/attendees/add">Dodaj grupę uczestników</a></h5>
+    </div>
 </div>
-
 {% endblock content %}
