@@ -32,7 +32,7 @@
     <nav aria-label="breadcrumb" class="mb-0">
       <ol class="breadcrumb mb-0">
         <li class="breadcrumb-item"><a href="/logout">Wyloguj</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{{ request.user.username }}</li>
+        <li class="breadcrumb-item active" aria-current="page">Użytkownik: {{ request.user.username }}</li>
       </ol>
     </nav>
 
@@ -43,7 +43,7 @@
   </div>
 
   <!-- Prawa część: logo -->
-  <div class="ms-auto" style="width: 10rem;">
+  <div class="ms-auto" style="width: 15rem;">
     {% load static %}
     <img src="{% static 'logo-09.2024.png' %}" class="img-fluid p-3" alt="Logo">
   </div>
