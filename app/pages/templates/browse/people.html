@@ -149,16 +149,17 @@
                         <input data-mdb-button-init data-mdb-ripple-init class="btn btn-primary" type="submit" id="search-btn" data-mdb-ripple-color="dark" value="Szukaj">
                     </div>
                 </div>
-<div class="container p-0 ms-0 mb-1">
+<div class="container p-0 ms-0 mb-1 mt-2">
+	{% for button in buttons %}
+	<a class="btn btn-primary" href="{{ button.href }}">{{ button.name }}</a>
+	{% endfor %}
     <div class="btn-group" role="group">
         <input type="checkbox" class="btn-check" id="allCheckboxes" autocomplete="off" onchange="toggleAllCheckboxes(this.checked)">
         <label class="btn btn-outline-dark" for="allCheckboxes">Zaznacz wszystkie</label>  
         <!-- <input type="checkbox" class="btn-check" id="shownCheckboxes" autocomplete="off">
         <label class="btn btn-outline-dark" for="shownCheckboxes">Zaznacz widoczne</label> -->
     </div>
-	{% for button in buttons %}
-	<a class="btn btn-primary" href="{{ button.href }}">{{ button.name }}</a>
-	{% endfor %}
+	
     <div class="btn-group" role="group" id="bulkButtonGroup">
         {% if bulkButtons.bulkDelete or bulkButtons == None %}
         <button type="button" class="btn btn-danger" onclick="deleteChecked()" id="deleteToggled"  data-bs-toggle="modal" data-bs-target="#modal" disabled>Usuń zaznaczone</button>
