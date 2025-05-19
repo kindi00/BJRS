@@ -269,6 +269,10 @@ class BrowseView(TemplateView, NavigationBar):
         ...
 
     def _get_objects(self, query, **kwargs):
+        #Wszystko dodane przez kryst 19.05.25 dla paginacji
+        q = query.pop('q', '')
+        query.pop('page', None)
+        kwargs = format_filter_query(query)
         ...
 
     def get(self, request, **kwargs):
