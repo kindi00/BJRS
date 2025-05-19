@@ -26,24 +26,26 @@
   </head>
   {% if request.user.is_authenticated %}
   <!-- Add user breadcrumb --> 
-<div class="d-flex align-items-center w-100 px-3">
-  <div>
-    <nav aria-label="breadcrumb">
+<div class="d-flex justify-content-between align-items-center w-100 px-3">
+  <!-- Lewa część: nawigacja i linki -->
+  <div class="d-flex align-items-center gap-3">
+    <nav aria-label="breadcrumb" class="mb-0">
       <ol class="breadcrumb mb-0">
         <li class="breadcrumb-item"><a href="/logout">Wyloguj</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ request.user.username }}</li>
       </ol>
     </nav>
 
-    <div class="mt-2">
+    <div>
       <a href="/browse/people" class="me-3">Przeglądaj</a>
       <a href="/admin_settings/teachers">Ustawienia</a>
     </div>
   </div>
 
-  <div class="card text-center ms-auto" style="width: 10rem;">
+  <!-- Prawa część: logo -->
+  <div class="ms-auto" style="width: 10rem;">
     {% load static %}
-    <img src="{% static 'logo-09.2024.png' %}" class="card-img-top p-3" alt="Logo">
+    <img src="{% static 'logo-09.2024.png' %}" class="img-fluid p-3" alt="Logo">
   </div>
 </div>
 
