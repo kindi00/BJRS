@@ -13,6 +13,8 @@ from csv import DictReader, writer
 from io import TextIOWrapper
 from dataclasses import dataclass
 from django.http import FileResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 import json
 
 
@@ -273,11 +275,34 @@ class BrowseView(TemplateView, NavigationBar):
         filters = self.filter_form(initial={k: v for k, v in request.GET.dict().items() if k != 'q'}) if self.filter_form is not None else None
         objects = self._get_objects(request.GET.dict(), **kwargs)
         q = request.GET.get('q') if request.GET.get('q') is not None else ''
+        #Dodane przez kryst 19.05.25
+        paginator = Paginator(objects, 25)
+        page_number = request.GET.get('page')  # numer strony z query param
+        try:
+            page_obj = paginator.page(page_number)
+        except PageNotAnInteger:
+            page_obj = paginator.page(1)  # jeśli nieprawidłowy numer strony, pierwsza
+        except EmptyPage:
+            page_obj = paginator.page(paginator.num_pages)  # ostatnia strona
+        
         self._activate_nav_item()
-        fields = self._get_fields(objects)
+        # stare: fields = self._get_fields(objects)
+        # nowe (19.05.25)
+        fields = self._get_fields(page_obj)
         buttons = self._get_buttons()
         table = HTMLTable(header_cells=self.header_cells, rows=fields, body_name='tbody')
-        context = {'objects': objects, 'nav_bars': self.nav_bars, 'tables': [table], 'buttons': buttons, 'q': q, 'filters': filters}
+        
+        # stare: context = {'objects': objects, 'nav_bars': self.nav_bars, 'tables': [table], 'buttons': buttons, 'q': q, 'filters': filters}
+        context = {
+            'objects': page_obj,
+            'nav_bars': self.nav_bars,
+            'tables': [table],
+            'buttons': buttons,
+            'q': q,
+            'filters': filters,
+            'paginator': paginator,
+            'page_obj': page_obj,
+        }
         return render(request, self.template_name, context)
 
     def post(self, request):
