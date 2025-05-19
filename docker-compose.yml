@@ -74,3 +74,7 @@ services:
 volumes:
   postgres_data:
   postgres_data_sec:
+
+#Dodane przez kryst 19.05.25 (Timezone)
+environment:
+  - TZ=Europe/Warsaw
