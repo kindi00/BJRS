@@ -156,6 +156,9 @@
         <!-- <input type="checkbox" class="btn-check" id="shownCheckboxes" autocomplete="off">
         <label class="btn btn-outline-dark" for="shownCheckboxes">Zaznacz widoczne</label> -->
     </div>
+	{% for button in buttons %}
+	<a class="btn btn-primary" href="{{ button.href }}">{{ button.name }}</a>
+	{% endfor %}
     <div class="btn-group" role="group" id="bulkButtonGroup">
         {% if bulkButtons.bulkDelete or bulkButtons == None %}
         <button type="button" class="btn btn-danger" onclick="deleteChecked()" id="deleteToggled"  data-bs-toggle="modal" data-bs-target="#modal" disabled>Usuń zaznaczone</button>
@@ -164,9 +167,7 @@
         <button type="button" class="btn btn-primary" onclick="addChecked()" id="addToggled"  data-bs-toggle="modal" data-bs-target="#modal" disabled>Dodaj zaznaczone</button>
         {% endif %}
     </div>
-	{% for button in buttons %}
-	<a class="btn btn-primary" href="{{ button.href }}">{{ button.name }}</a>
-	{% endfor %}
+	
 </div>
 <div class="container p-0 m-0">
     <table id="browse_table" class="table table-striped table-hover table-bordered border-secondary">
