@@ -48,11 +48,12 @@
             }
         }
         if (!_checked) {toggled = [];}
-	const label = document.getElementById('allCheckboxesLabel');
+	    
+	const label = document.getElementById('_checked');
    	if (checkbox.checked) {
-        	label.textContent = 'Odznacz wszystkie';
+	    label.textContent = 'Odznacz wszystkie';
     	} else {
-        	label.textContent = 'Zaznacz wszystkie';
+            label.textContent = 'Zaznacz wszystkie';
     	}
         turnOffButtons();
         // document.getElementById('shownCheckboxes').checked = false;
