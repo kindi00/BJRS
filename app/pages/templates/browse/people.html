@@ -164,6 +164,9 @@
         <button type="button" class="btn btn-primary" onclick="addChecked()" id="addToggled"  data-bs-toggle="modal" data-bs-target="#modal" disabled>Dodaj zaznaczone</button>
         {% endif %}
     </div>
+	{% for button in buttons %}
+	<a class="btn btn-primary" href="{{ button.href }}">{{ button.name }}</a>
+	{% endfor %}
 </div>
 <div class="container p-0 m-0">
     <table id="browse_table" class="table table-striped table-hover table-bordered border-secondary">
@@ -209,9 +212,7 @@
         {% endfor %}
     </table>
 </div>
-{% for button in buttons %}
-<a class="btn btn-primary" href="{{ button.href }}">{{ button.name }}</a>
-{% endfor %}
+
 
 
 
