@@ -275,9 +275,11 @@ class BrowseView(TemplateView, NavigationBar):
         filters = self.filter_form(initial={k: v for k, v in request.GET.dict().items() if k != 'q'}) if self.filter_form is not None else None
         objects = self._get_objects(request.GET.dict(), **kwargs)
         q = request.GET.get('q') if request.GET.get('q') is not None else ''
+        
         #Dodane przez kryst 19.05.25
         paginator = Paginator(objects, 25)
-        page_number = request.GET.get('page')  # numer strony z query param
+        page_number = request.GET.get('page', 1)  # numer strony z query param
+        
         try:
             page_obj = paginator.page(page_number)
         except PageNotAnInteger:
@@ -302,6 +304,7 @@ class BrowseView(TemplateView, NavigationBar):
             'filters': filters,
             'paginator': paginator,
             'page_obj': page_obj,
+            'request': request,
         }
         return render(request, self.template_name, context)
 
