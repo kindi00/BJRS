@@ -269,33 +269,38 @@ class BrowseView(TemplateView, NavigationBar):
         ...
 
     def _get_objects(self, query, **kwargs):
-        #Wszystko dodane przez kryst 19.05.25 dla paginacji
-        q = query.pop('q', '')
-        query.pop('page', None)
-        kwargs = format_filter_query(query)
         ...
 
     def get(self, request, **kwargs):
-        filters = self.filter_form(initial={k: v for k, v in request.GET.dict().items() if k != 'q'}) if self.filter_form is not None else None
-        objects = self._get_objects(request.GET.dict(), **kwargs)
-        q = request.GET.get('q') if request.GET.get('q') is not None else ''
+        ## Dodane przez kryst 19.05.25
+        query_dict = request.GET.dict()
+        query_dict.pop('page', None)  # <<< USUWA "page"
+        q = query_dict.get('q', '')
+        filters = self.filter_form(initial={k: v for k, v in query_dict.items() if k != 'q'}) if self.filter_form else None
+        objects = self._get_objects(query_dict, **kwargs)
+        ##
+        #stare: filters = self.filter_form(initial={k: v for k, v in request.GET.dict().items() if k != 'q'}) if self.filter_form is not None else None
+        #stare: objects = self._get_objects(request.GET.dict(), **kwargs)
+        #stare: q = request.GET.get('q') if request.GET.get('q') is not None else ''
         
-        #Dodane przez kryst 19.05.25
+        ## Dodane przez kryst 19.05.25
         paginator = Paginator(objects, 25)
         page_number = request.GET.get('page', 1)  # numer strony z query param
-        
         try:
             page_obj = paginator.page(page_number)
         except PageNotAnInteger:
             page_obj = paginator.page(1)  # jeśli nieprawidłowy numer strony, pierwsza
         except EmptyPage:
             page_obj = paginator.page(paginator.num_pages)  # ostatnia strona
+        ##
         
         self._activate_nav_item()
         # stare: fields = self._get_fields(objects)
-        # nowe (19.05.25)
+        ## nowe (19.05.25)
         fields = self._get_fields(page_obj)
         buttons = self._get_buttons()
+        ##
+        
         table = HTMLTable(header_cells=self.header_cells, rows=fields, body_name='tbody')
         
         # stare: context = {'objects': objects, 'nav_bars': self.nav_bars, 'tables': [table], 'buttons': buttons, 'q': q, 'filters': filters}
@@ -308,7 +313,6 @@ class BrowseView(TemplateView, NavigationBar):
             'filters': filters,
             'paginator': paginator,
             'page_obj': page_obj,
-            'request': request,
         }
         return render(request, self.template_name, context)
 
