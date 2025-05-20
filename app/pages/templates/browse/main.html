@@ -1,8 +1,5 @@
 {% extends "main.html" %}
-{% load static %}
-<head>
-    <link href="{% static 'contents.css' %}" rel="stylesheet" type="text/css">
-</head>
+
 {% block head %}
 {{ block.super }}
 {% for nav_items in nav_bars %}
