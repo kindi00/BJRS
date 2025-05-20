@@ -164,7 +164,7 @@ class PersonForm(UpdateableForm):
 
 
 class ShowPersonForm(UpdateableForm):
-    _when_added = DateTimeField(widget=MyDateTimeInput, label="Dodane dnia")
+    _when_added = DateTimeField(widget=MyDateTimeInput, label="Dodane dnia", input_formats=['%Y-%m-%dT%H:%M'])  # format zgodny z datetime-local
 
     class Meta:
         model = People
@@ -172,7 +172,7 @@ class ShowPersonForm(UpdateableForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['_when_added'].initial = kwargs['instance'].when_added
+        self.fields['_when_added'].initial = kwargs['instance'].when_added.strftime('%Y-%m-%dT%H:%M')
 
 
 class PersonPeopleEventsForm(UpdateableForm):
