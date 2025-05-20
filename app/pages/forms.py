@@ -166,15 +166,15 @@ class PersonForm(UpdateableForm):
 
 
 class ShowPersonForm(UpdateableForm):
-    when_added = DateTimeField(widget=MyDateTimeInput, label="Dodane dnia")
+    _when_added = DateTimeField(widget=MyDateTimeInput, label="Dodane dnia")
 
     class Meta:
         model = People
-        fields = ['name', 'surname', 'phone_nr', 'mail', 'is_adult', 'gender', 'country_code', 'description', 'notes', 'when_added']
+        fields = ['name', 'surname', 'phone_nr', 'mail', 'is_adult', 'gender', 'country_code', 'description', 'notes', '_when_added']
 
     #def __init__(self, *args, **kwargs):
         #super().__init__(*args, **kwargs)
-        #stare: self.fields['when_added'].initial = kwargs['instance'].when_added
+        #stare: self.fields['_when_added'].initial = kwargs['instance'].when_added
 
         #dodane przez kryst 20.05.25 (konwersja na czas lokalny)
     def __init__(self, *args, **kwargs):
@@ -184,7 +184,7 @@ class ShowPersonForm(UpdateableForm):
             dt = instance.when_added
             if is_naive(dt):
                 dt = make_aware(dt, timezone=timezone.utc)
-            self.fields['when_added'].initial = localtime(dt).strftime('%Y-%m-%dT%H:%M')
+            self.fields['_when_added'].initial = localtime(dt).strftime('%Y-%m-%dT%H:%M')
   #dodane przez kryst 20.05.25 (konwersja na czas lokalny)
     def clean_when_added(self):
         dt = self.cleaned_data.get('when_added')
