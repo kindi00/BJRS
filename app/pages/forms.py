@@ -1,7 +1,7 @@
 from django.forms import ModelForm, Form, FileField, Textarea, BooleanField, CheckboxInput, DateTimeInput, DateInput, TimeInput, CharField, TextInput, IntegerField, NumberInput, DateTimeField, DateField, TimeField, MultipleChoiceField, CheckboxSelectMultiple, ChoiceField, ModelChoiceField
 from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, Courses, Semesters, Attendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, PeopleSemesters, Activities, Consents, PeopleRoles, Attendance, PeopleEvents, Genders, AttendanceTypes, FamilyMembers, GRAT
 from django.utils.timezone import localtime, make_aware
-
+import pytz
 import json
 
 
@@ -181,8 +181,11 @@ class ShowPersonForm(UpdateableForm):
         super().__init__(*args, **kwargs)
         instance = kwargs.get('instance')
         if instance and instance.when_added:
-            self.fields['_when_added'].initial = localtime(instance.when_added)
-
+            dt = instance.when_added
+            if is_naive(dt):
+                dt = make_aware(dt, timezone=pytz.utc)
+            self.fields['when_added'].initial = localtime(dt)
+  #dodane przez kryst 20.05.25 (konwersja na czas lokalny)
     def clean_when_added(self):
         dt = self.cleaned_data.get('when_added')
         if dt:
