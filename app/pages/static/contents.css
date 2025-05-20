@@ -119,6 +119,8 @@
 .stat-box .label {
     line-height: 1.2;
 }
+.no-hover *,
+.no-hover *:hover,
 .no-hover:hover {
     transform: none !important;
     box-shadow: none !important;
