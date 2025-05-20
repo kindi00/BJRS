@@ -277,14 +277,22 @@ class BrowseView(TemplateView, NavigationBar):
         query_dict.pop('page', None)  # <<< USUWA "page"
         q = query_dict.get('q', '')
         filters = self.filter_form(initial={k: v for k, v in query_dict.items() if k != 'q'}) if self.filter_form else None
-        objects = self._get_objects(query_dict, **kwargs)
+        
+        # Wszystkie obiekty w tabeli (do all_count)
+        all_objects = self.model.objects.all()
+        all_count = all_objects.count()
+    
+        # Obiekty po filtrze (ale jeszcze nie paginowane)
+        filtered_objects = self._get_objects(query_dict, **kwargs)
+        filtered_count = filtered_objects.count()
+        
         ##
         #stare: filters = self.filter_form(initial={k: v for k, v in request.GET.dict().items() if k != 'q'}) if self.filter_form is not None else None
         #stare: objects = self._get_objects(request.GET.dict(), **kwargs)
         #stare: q = request.GET.get('q') if request.GET.get('q') is not None else ''
         
         ## Dodane przez kryst 19.05.25
-        paginator = Paginator(objects, 25)
+        paginator = Paginator(objects, 30)
         page_number = request.GET.get('page', 1)  # numer strony z query param
         try:
             page_obj = paginator.page(page_number)
@@ -313,6 +321,8 @@ class BrowseView(TemplateView, NavigationBar):
             'filters': filters,
             'paginator': paginator,
             'page_obj': page_obj,
+            'all_count': all_count,  
+            'filtered_count': filtered_count,
         }
         return render(request, self.template_name, context)
 
