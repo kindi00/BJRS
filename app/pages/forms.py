@@ -166,7 +166,7 @@ class PersonForm(UpdateableForm):
 
 
 class ShowPersonForm(UpdateableForm):
-    _when_added = DateTimeField(widget=MyDateTimeInput, label="Dodane dnia")
+    _when_added = DateTimeField(widget=MyDateTimeInput, label="Dodane dnia", input_formats=['%Y-%m-%dT%H:%M'])
 
     class Meta:
         model = People
