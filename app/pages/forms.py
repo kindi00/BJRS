@@ -1,6 +1,7 @@
 from django.forms import ModelForm, Form, FileField, Textarea, BooleanField, CheckboxInput, DateTimeInput, DateInput, TimeInput, CharField, TextInput, IntegerField, NumberInput, DateTimeField, DateField, TimeField, MultipleChoiceField, CheckboxSelectMultiple, ChoiceField, ModelChoiceField
 from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, Courses, Semesters, Attendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, PeopleSemesters, Activities, Consents, PeopleRoles, Attendance, PeopleEvents, Genders, AttendanceTypes, FamilyMembers, GRAT
-from django.utils import timezone
+from django.utils.timezone import make_aware, is_naive, localtime
+
 import json
 
 
@@ -179,9 +180,10 @@ class ShowPersonForm(UpdateableForm):
         if 'instance' in kwargs and kwargs['instance']:
             when_added_val = kwargs['instance'].when_added
             if when_added_val:
-                # Konwersja do lokalnej strefy czasowej
-                local_time = timezone.localtime(when_added_val)
-                self.fields['_when_added'].initial = local_time.strftime('%Y-%m-%dT%H:%M')
+                if is_naive(when_added_val):
+                    when_added_val = make_aware(when_added_val)
+                local_time = localtime(when_added_val)
+                self.fields['when_added'].initial = local_time.strftime('%Y-%m-%dT%H:%M')
 
 
 class PersonPeopleEventsForm(UpdateableForm):
