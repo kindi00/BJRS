@@ -175,7 +175,10 @@
         <button type="button" class="btn btn-primary" onclick="addChecked()" id="addToggled"  data-bs-toggle="modal" data-bs-target="#modal" disabled>Dodaj zaznaczone</button>
         {% endif %}
     </div>
-	
+	<p>
+	    Liczba osób w bazie: {{ all_count }}<br>
+	    Liczba osób spełniających kryteria wyszukiwania: {{ filtered_count }}
+	</p>
 </div>
 <div class="container p-0 m-0">
     <table id="browse_table" class="table table-striped table-hover table-bordered border-secondary">
