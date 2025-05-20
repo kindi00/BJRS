@@ -177,12 +177,16 @@
 </div>
 <div class="people-stats">
     <div class="stat-box">
-	<strong>Liczba osób w bazie:</strong> {{ all_count }}
+        <div class="icon">👥</div>
+        <div class="label">Liczba wszystkich osób w bazie:</div>
+        <div class="value">{{ all_count }}</div>
     </div>
     <div class="stat-box">
-	<strong>Liczba osób spełniających kryteria wyszukiwania:</strong> {{ filtered_count }}
+        <div class="icon">🔍</div>
+        <div class="label">Wyniki wyszukiwania:</div>
+        <div class="value">{{ filtered_count }}</div>
     </div>
-</div>		
+</div>			
 <div class="container p-0 m-0">
     <table id="browse_table" class="table table-striped table-hover table-bordered border-secondary">
         {% for table in tables %}
