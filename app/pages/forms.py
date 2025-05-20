@@ -184,7 +184,7 @@ class ShowPersonForm(UpdateableForm):
             dt = instance.when_added
             if is_naive(dt):
                 dt = make_aware(dt, timezone=timezone.utc)
-            self.fields['_when_added'].initial = localtime(dt).strftime('%Y-%m-%dT%H:%M')
+            self.fields['when_added'].initial = localtime(dt).strftime('%Y-%m-%dT%H:%M')
   #dodane przez kryst 20.05.25 (konwersja na czas lokalny)
     def clean_when_added(self):
         dt = self.cleaned_data.get('when_added')
