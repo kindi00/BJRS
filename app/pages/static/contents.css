@@ -66,16 +66,41 @@
     border-color:#fff #fff #dee2e6;
     isolation:isolate
 }
+
+/*Dodawanie stylów do napisu ilości osób*/
 .people-stats {
+    margin-top: 2rem; /* odstęp od przycisków powyżej */
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    margin-bottom: 1rem;
-    font-size: 14px;
+    justify-content: center;
 }
+
 .stat-box {
-    background-color: #f5f5f5;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    width: 180px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.stat-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-box .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1f2937; /* ciemny szary */
+    margin-bottom: 0.5rem;
+}
+
+.stat-box .label {
+    font-size: 0.95rem;
+    color: #6b7280; /* szary */
+    font-weight: 500;
 }
