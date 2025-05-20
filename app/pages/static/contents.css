@@ -123,5 +123,5 @@
 .no-hover *:hover,
 .no-hover:hover {
     transform: none !important;
-    box-shadow: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
 }
