@@ -38,7 +38,10 @@ services:
     #Dodane przez kryst 19.05.25 (Timezone)
     environment:
       - TZ=Europe/Warsaw
-
+      - LANG=pl_PL.UTF-8
+      - LANGUAGE=pl_PL:pl
+      - LC_ALL=pl_PL.UTF-8
+      
     env_file:
       - ./.env.dev
     depends_on:
