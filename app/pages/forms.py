@@ -1,6 +1,7 @@
 from django.forms import ModelForm, Form, FileField, Textarea, BooleanField, CheckboxInput, DateTimeInput, DateInput, TimeInput, CharField, TextInput, IntegerField, NumberInput, DateTimeField, DateField, TimeField, MultipleChoiceField, CheckboxSelectMultiple, ChoiceField, ModelChoiceField
 from .models import People, Roles, Projects, Events, EventTypes, Categories, Groups, ViewFamilies, Courses, Semesters, Attendees, ActivityTypes, RolesActivityTypes, Codes, SemesterDates, PeopleSemesters, Activities, Consents, PeopleRoles, Attendance, PeopleEvents, Genders, AttendanceTypes, FamilyMembers, GRAT
-from django.utils.timezone import make_aware, is_naive, localtime
+from django.utils.timezone import localtime, make_aware
+import pytz
 
 import json
 
@@ -179,19 +180,17 @@ class ShowPersonForm(UpdateableForm):
         #dodane przez kryst 20.05.25 (konwersja na czas lokalny)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'instance' in kwargs and kwargs['instance'].when_added:
-            # Wyświetl czas jako lokalny
-            self.fields['_when_added'].initial = localtime(kwargs['instance'].when_added)
-    
-    #dodane przez kryst 20.05.25 (konwersja na czas lokalny)
+        instance = kwargs.get('instance')
+        if instance and instance.when_added:
+            self.fields['_when_added'].initial = localtime(instance.when_added)
+
     def clean_when_added(self):
-        data = self.cleaned_data['_when_added']
-        if data:
-            # Zmieniamy na aware w lokalnej strefie i przeliczamy do UTC
+        dt = self.cleaned_data.get('when_added')
+        if dt:
             tz = pytz.timezone('Europe/Warsaw')
-            aware = make_aware(data, timezone=tz)
-            return aware.astimezone(timezone.utc)
-        return data
+            aware_dt = make_aware(dt, timezone=tz)
+            return aware_dt.astimezone(pytz.utc)
+        return dt
 
 
 class PersonPeopleEventsForm(UpdateableForm):
