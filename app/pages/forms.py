@@ -172,7 +172,15 @@ class ShowPersonForm(UpdateableForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['_when_added'].initial = kwargs['instance'].when_added.strftime('%Y-%m-%dT%H:%M')
+        #stare: self.fields['_when_added'].initial = kwargs['instance'].when_added
+
+        #dodane przez kryst 20.05.25 (konwersja na czas lokalny)
+        if 'instance' in kwargs and kwargs['instance']:
+            when_added_val = kwargs['instance'].when_added
+            if when_added_val:
+                # Konwersja do lokalnej strefy czasowej
+                local_time = timezone.localtime(when_added_val)
+                self.fields['_when_added'].initial = local_time.strftime('%Y-%m-%dT%H:%M')
 
 
 class PersonPeopleEventsForm(UpdateableForm):
