@@ -292,7 +292,7 @@ class BrowseView(TemplateView, NavigationBar):
         #stare: q = request.GET.get('q') if request.GET.get('q') is not None else ''
         
         ## Dodane przez kryst 19.05.25
-        paginator = Paginator(objects, 30)
+        paginator = Paginator(filtered_objects, 30)
         page_number = request.GET.get('page', 1)  # numer strony z query param
         try:
             page_obj = paginator.page(page_number)
