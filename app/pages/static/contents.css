@@ -70,8 +70,9 @@
 /*Dodawanie stylów do napisu ilości osób*/
 .people-stats {
     margin-top: 2rem;
+    margin-bottom: 2rem;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 1rem;
     align-items: flex-start;
 }
