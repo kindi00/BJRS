@@ -183,7 +183,7 @@ class ShowPersonForm(UpdateableForm):
                 if is_naive(when_added_val):
                     when_added_val = make_aware(when_added_val)
                 local_time = localtime(when_added_val)
-                self.fields['when_added'].initial = local_time.strftime('%Y-%m-%dT%H:%M')
+                self.fields['_when_added'].initial = local_time.strftime('%Y-%m-%dT%H:%M')
 
 
 class PersonPeopleEventsForm(UpdateableForm):
