@@ -202,7 +202,7 @@
                 {% if info.type == 'data' %}
                 <td scope="col" onclick="window.location='{{field.onclick}}'">{{ info.data|default_if_none:"" }}</td>
                 {% elif info.type == 'datetime' %}
-                <td scope="col" onclick="window.location='{{field.onclick}}'">{{ info.data|date:"d.m.Y, H:i" }}</td>
+                <td scope="col" onclick="window.location='{{field.onclick}}'">{{ info.data|date:"d.m.Y, H:i"|default:"-" }}</td>
                 {% elif info.type == 'date' %}
                 <td scope="col" onclick="window.location='{{field.onclick}}'">{{ info.data|date:"d.m.Y" }}</td>
                 {% elif info.type == 'time' %}
