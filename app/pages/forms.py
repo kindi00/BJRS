@@ -166,32 +166,32 @@ class PersonForm(UpdateableForm):
 
 
 class ShowPersonForm(UpdateableForm):
-    _when_added = DateTimeField(widget=MyDateTimeInput, label="Dodane dnia", input_formats=['%Y-%m-%dT%H:%M'])
+    _when_added = DateTimeField(widget=MyDateTimeInput, label="Dodane dnia")
 
     class Meta:
         model = People
         fields = ['name', 'surname', 'phone_nr', 'mail', 'is_adult', 'gender', 'country_code', 'description', 'notes', '_when_added']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    #def __init__(self, *args, **kwargs):
+        #super().__init__(*args, **kwargs)
         #stare: self.fields['_when_added'].initial = kwargs['instance'].when_added
 
         #dodane przez kryst 20.05.25 (konwersja na czas lokalny)
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            if 'instance' in kwargs and kwargs['instance'].when_added:
-                # Wyświetl czas jako lokalny
-                self.fields['_when_added'].initial = localtime(kwargs['instance'].when_added)
-        
-        #dodane przez kryst 20.05.25 (konwersja na czas lokalny)
-        def clean_when_added(self):
-            data = self.cleaned_data['_when_added']
-            if data:
-                # Zmieniamy na aware w lokalnej strefie i przeliczamy do UTC
-                tz = pytz.timezone('Europe/Warsaw')
-                aware = make_aware(data, timezone=tz)
-                return aware.astimezone(timezone.utc)
-            return data
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'instance' in kwargs and kwargs['instance'].when_added:
+            # Wyświetl czas jako lokalny
+            self.fields['_when_added'].initial = localtime(kwargs['instance'].when_added)
+    
+    #dodane przez kryst 20.05.25 (konwersja na czas lokalny)
+    def clean_when_added(self):
+        data = self.cleaned_data['_when_added']
+        if data:
+            # Zmieniamy na aware w lokalnej strefie i przeliczamy do UTC
+            tz = pytz.timezone('Europe/Warsaw')
+            aware = make_aware(data, timezone=tz)
+            return aware.astimezone(timezone.utc)
+        return data
 
 
 class PersonPeopleEventsForm(UpdateableForm):
