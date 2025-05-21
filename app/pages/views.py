@@ -2009,10 +2009,14 @@ class ImportPersonView(ImportView):
                     description=row['cecha charakterystyczna'],
                     notes=row['opis'])
             errors += person.validate()
-            try:
-                person.validate_unique()
-            except ValidationError:
+            #Dodane kryst 21.05.25. Tak, aby program pomijał osobę, jeżeli dany mail już istnieje w bazie i przechodził dalej
+            if person.mail and People.objects.filter(mail=person.mail).exists():
                 errors.append("Osoba z tym adresem mail już istnieje")
+
+            #try:
+            #    person.validate_unique()
+            #except ValidationError:
+            #    errors.append("Osoba z tym adresem mail już istnieje")
             if not errors:
                 people.append(person)
             else:
